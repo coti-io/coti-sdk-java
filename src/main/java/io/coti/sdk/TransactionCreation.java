@@ -1,19 +1,15 @@
 package io.coti.sdk;
 
 import io.coti.basenode.crypto.NodeCryptoHelper;
-import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
 import io.coti.basenode.crypto.TransactionCrypto;
 import io.coti.basenode.data.*;
-import io.coti.sdk.http.AddTransactionRequest;
+import io.coti.basenode.exceptions.CotiRunTimeException;
 import io.coti.sdk.http.GetTransactionTrustScoreResponse;
+import io.coti.sdk.utils.Constants;
 import io.coti.sdk.utils.CryptoUtils;
 import io.coti.sdk.utils.Mapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
@@ -22,88 +18,84 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Service
 public class TransactionCreation {
 
-    public static final String INSUFFICIENT_FUNDS_MESSAGE = "Balance for address is insufficient!";
-    @Value("${seed}")
-    private String seed;
-    @Value("${user.hash}")
-    private String userHash;
-    @Value("${full.node.backend.address}")
+    private String trustScoreAddress;
     private String fullNodeAddress;
-    @Value("${native.currency.symbol:COTI}")
-    private String nativeCurrencySymbol;
-    @Value("${transaction.description:}")
-    private String description;
-    @Value("${transfer.amount}")
-    private String amountString;
-    @Value("${source.address.index}")
     private int walletAddressIndex;
     private Hash nativeCurrencyHash;
-    private BigDecimal amount;
-    @Autowired
-    private TransactionCryptoCreator transactionCryptoCreator;
-    @Autowired
-    private TransactionCrypto transactionCrypto;
-    @Autowired
-    private BaseTransactionCreation baseTransactionCreation;
-    @Autowired
-    private TrustScoreData trustScoreData;
-    @Autowired
-    private AccountBalance accountBalance;
+    private Hash userPrivateKey;
+    private Hash senderHash;
+    private Hash addressHash;
 
-    @PostConstruct
-    private void init() {
-        nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash(nativeCurrencySymbol);
-        amount = new BigDecimal(amountString);
+    public TransactionCreation(String seed, String userHash, String trustScoreAddress, String fullNodeAddress,
+                               int walletAddressIndex, Hash nativeCurrencyHash) {
+        this.trustScoreAddress = trustScoreAddress;
+        this.fullNodeAddress = fullNodeAddress;
+        this.walletAddressIndex = walletAddressIndex;
+        this.nativeCurrencyHash = nativeCurrencyHash;
+        this.addressHash = NodeCryptoHelper.generateAddress(seed, walletAddressIndex);
+        this.userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed)).getBytes());
+        this.senderHash = new Hash(userHash);
     }
 
-    public AddTransactionRequest createAddTransactionRequest() {
-        Hash addressHash = NodeCryptoHelper.generateAddress(seed, walletAddressIndex);
-        Hash userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed)).getBytes());
-        Hash senderHash = new Hash(userHash);
-        if (balanceNotValid(addressHash, fullNodeAddress)) {
-            throw new RuntimeException(INSUFFICIENT_FUNDS_MESSAGE);
+    public TransactionData createTransactionData(BigDecimal amount, String transactionDescription) {
+        TransactionData transactionData = null;
+        try {
+            if (balanceNotValid(addressHash, fullNodeAddress, amount)) {
+                log.error(Constants.INSUFFICIENT_FUNDS_MESSAGE);
+                return transactionData;
+            }
+            BaseTransactionCreation baseTransactionCreation = new BaseTransactionCreation(nativeCurrencyHash, fullNodeAddress, trustScoreAddress);
+            List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTransactions(userPrivateKey, senderHash, amount, addressHash, true);
+            CryptoUtils.createAndSetBaseTransactionsHash(baseTransactions);
+            GetTransactionTrustScoreResponse trustScoreResponse = getTrustScore(baseTransactions, userPrivateKey, senderHash);
+            double trustScore = 0;
+            TransactionTrustScoreData transactionTrustScoreData = new TransactionTrustScoreData(trustScore);
+            if (trustScoreResponse.getTransactionTrustScoreData() != null) {
+                transactionTrustScoreData = Mapper.map(trustScoreResponse.getTransactionTrustScoreData()).toTrustScoreData();
+                trustScore = trustScoreResponse.getTransactionTrustScoreData().getTrustScore();
+            }
+            transactionData = createTransactionData(baseTransactions, transactionDescription, trustScore, addressHash, TransactionType.Transfer);
+            transactionData.setTrustScoreResults(Collections.singletonList(transactionTrustScoreData));
+            transactionData.setSenderHash(senderHash);
+            transactionData.setSenderSignature(CryptoUtils.signTransactionData(transactionData, userPrivateKey));
+        } catch (CotiRunTimeException e) {
+            log.error("Exception: ", e);
         }
-        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTransactions(amount, addressHash, true);
-        CryptoUtils.createAndSetBaseTransactionsHash(baseTransactions);
-        GetTransactionTrustScoreResponse trustScoreResponse = getTrustScore(baseTransactions);
-        double trustScore = 0;
-        TransactionTrustScoreData transactionTrustScoreData = new TransactionTrustScoreData(trustScore);
-        if (trustScoreResponse != null && trustScoreResponse.getTransactionTrustScoreData() != null) {
-            transactionTrustScoreData = Mapper.map(trustScoreResponse.getTransactionTrustScoreData()).toTrustScoreData();
-            trustScore = trustScoreResponse.getTransactionTrustScoreData().getTrustScore();
-        }
-        TransactionData transactionData = createTransactionData(baseTransactions, description, trustScore, addressHash, TransactionType.Transfer);
-        transactionData.setTrustScoreResults(Collections.singletonList(transactionTrustScoreData));
-        transactionData.setSenderHash(senderHash);
-        transactionData.setSenderSignature(transactionCryptoCreator.signTransactionData(transactionData, userPrivateKey));
 
-        return new AddTransactionRequest(transactionData);
+        return transactionData;
     }
 
-    private boolean balanceNotValid(Hash addressHash, String fullNodeAddress) {
-        BigDecimal balance = accountBalance.getAccountBalance(addressHash, fullNodeAddress);
+    private boolean balanceNotValid(Hash addressHash, String fullNodeAddress, BigDecimal amount) {
+        BigDecimal balance = AccountBalance.getAccountBalance(addressHash, fullNodeAddress);
         return balance.compareTo(amount) < 0;
     }
 
-    private GetTransactionTrustScoreResponse getTrustScore(List<BaseTransactionData> baseTransactions) {
-        return trustScoreData.getTransactionTrustScoreData(CryptoUtils.getHashFromBaseTransactionHashesData(baseTransactions));
+    private GetTransactionTrustScoreResponse getTrustScore(List<BaseTransactionData> baseTransactions, Hash userPrivateKey, Hash senderHash) {
+        TrustScoreData trustScoreData = new TrustScoreData(trustScoreAddress);
+        return trustScoreData.getTransactionTrustScoreData(CryptoUtils.getHashFromBaseTransactionHashesData(baseTransactions), userPrivateKey, senderHash);
     }
 
-    private TransactionData createTransactionData(List<BaseTransactionData> baseTransactions, String description, double trustScore, Hash addressHash, TransactionType transfer) {
+    private TransactionData createTransactionData(List<BaseTransactionData> baseTransactions, String description, double trustScore,
+                                                  Hash addressHash, TransactionType transfer) {
         Map<Hash, Integer> addressHashToAddressIndexMap = new HashMap<>();
         addressHashToAddressIndexMap.put(addressHash, walletAddressIndex);
         TransactionData transactionData = createNewTransaction(baseTransactions, description, trustScore, Instant.now(), transfer);
         transactionData.setAttachmentTime(Instant.now());
-        transactionCryptoCreator.signBaseTransactions(transactionData, addressHashToAddressIndexMap);
+        try {
+            CryptoUtils.signBaseTransactions(transactionData, addressHashToAddressIndexMap);
+        } catch (Exception e) {
+            log.error("Transaction signing base transactions error", e);
+        }
+        TransactionCrypto transactionCrypto = new TransactionCrypto();
         transactionCrypto.signMessage(transactionData);
         log.info("New transfer transaction {} created successfully", transactionData.getHash());
         return transactionData;
     }
 
-    private TransactionData createNewTransaction(List<BaseTransactionData> baseTransactions, String transactionDescription, double senderTrustScore, Instant createTime, TransactionType type) {
+    private TransactionData createNewTransaction(List<BaseTransactionData> baseTransactions, String transactionDescription,
+                                                 double senderTrustScore, Instant createTime, TransactionType type) {
         TransactionData transactionData = new TransactionData(baseTransactions, transactionDescription, senderTrustScore, createTime, type);
         transactionData.setAmount(getTotalNativeAmount(transactionData));
         return transactionData;

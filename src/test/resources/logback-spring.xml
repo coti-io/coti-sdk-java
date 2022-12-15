@@ -4,7 +4,7 @@
 
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <property name="LOGS_PATH" value="./logs"/>
-    <property resource="application.properties"/>
+    <property resource="application.properties" scope="local"/>
     <springProperty name="logging.file.name" source="logging.file.name"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">

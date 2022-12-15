@@ -1,6 +1,7 @@
 package io.coti.sdk.data;
 
-import io.coti.basenode.data.TransactionData;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.coti.basenode.http.data.TransactionResponseData;
 import io.coti.basenode.http.data.TransactionStatus;
 import lombok.Data;
@@ -11,15 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 public class NotifyTransactionChange {
 
     private TransactionStatus status;
-    private TransactionResponseData transactionData;
+    private TransactionResponseData transactionResponseData;
 
-    public NotifyTransactionChange(TransactionData transactionData, TransactionStatus transactionStatus) {
+    @JsonCreator
+    public NotifyTransactionChange(@JsonProperty("status") TransactionStatus transactionStatus,
+                                   @JsonProperty("transactionData") TransactionResponseData transactionResponseData) {
         this.status = transactionStatus;
-        try {
-            this.transactionData = new TransactionResponseData(transactionData);
-        } catch (Exception e) {
-            log.error("NotifyTransactionChange for transaction {} failed", transactionData.getHash());
-            log.error(e.getMessage());
-        }
+        this.transactionResponseData = transactionResponseData;
     }
 }
