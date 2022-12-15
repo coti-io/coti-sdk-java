@@ -3,7 +3,7 @@ package io.coti.sdk;
 import io.coti.basenode.crypto.NodeCryptoHelper;
 import io.coti.basenode.crypto.TransactionCrypto;
 import io.coti.basenode.data.*;
-import io.coti.basenode.exceptions.CotiRunTimeException;
+import io.coti.basenode.exceptions.BalanceException;
 import io.coti.sdk.http.GetTransactionTrustScoreResponse;
 import io.coti.sdk.utils.Constants;
 import io.coti.sdk.utils.CryptoUtils;
@@ -20,8 +20,8 @@ import java.util.Map;
 @Slf4j
 public class TransactionCreation {
 
+    public String fullNodeAddress;
     private String trustScoreAddress;
-    private String fullNodeAddress;
     private int walletAddressIndex;
     private Hash nativeCurrencyHash;
     private Hash userPrivateKey;
@@ -39,30 +39,26 @@ public class TransactionCreation {
         this.senderHash = new Hash(userHash);
     }
 
-    public TransactionData createTransactionData(BigDecimal amount, String transactionDescription) {
+    public TransactionData createTransactionData(BigDecimal amount, String transactionDescription) throws BalanceException {
         TransactionData transactionData = null;
-        try {
-            if (balanceNotValid(addressHash, fullNodeAddress, amount)) {
-                log.error(Constants.INSUFFICIENT_FUNDS_MESSAGE);
-                return transactionData;
-            }
-            BaseTransactionCreation baseTransactionCreation = new BaseTransactionCreation(nativeCurrencyHash, fullNodeAddress, trustScoreAddress);
-            List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTransactions(userPrivateKey, senderHash, amount, addressHash, true);
-            CryptoUtils.createAndSetBaseTransactionsHash(baseTransactions);
-            GetTransactionTrustScoreResponse trustScoreResponse = getTrustScore(baseTransactions, userPrivateKey, senderHash);
-            double trustScore = 0;
-            TransactionTrustScoreData transactionTrustScoreData = new TransactionTrustScoreData(trustScore);
-            if (trustScoreResponse.getTransactionTrustScoreData() != null) {
-                transactionTrustScoreData = Mapper.map(trustScoreResponse.getTransactionTrustScoreData()).toTrustScoreData();
-                trustScore = trustScoreResponse.getTransactionTrustScoreData().getTrustScore();
-            }
-            transactionData = createTransactionData(baseTransactions, transactionDescription, trustScore, addressHash, TransactionType.Transfer);
-            transactionData.setTrustScoreResults(Collections.singletonList(transactionTrustScoreData));
-            transactionData.setSenderHash(senderHash);
-            transactionData.setSenderSignature(CryptoUtils.signTransactionData(transactionData, userPrivateKey));
-        } catch (CotiRunTimeException e) {
-            log.error("Exception: ", e);
+        if (balanceNotValid(addressHash, fullNodeAddress, amount)) {
+            throw new BalanceException(Constants.INSUFFICIENT_FUNDS_MESSAGE);
         }
+        BaseTransactionCreation baseTransactionCreation = new BaseTransactionCreation(nativeCurrencyHash, fullNodeAddress, trustScoreAddress);
+        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTransactions(userPrivateKey, senderHash, amount, addressHash, true);
+        CryptoUtils.createAndSetBaseTransactionsHash(baseTransactions);
+        GetTransactionTrustScoreResponse trustScoreResponse = getTrustScore(baseTransactions, userPrivateKey, senderHash);
+        double trustScore = 0;
+        TransactionTrustScoreData transactionTrustScoreData = new TransactionTrustScoreData(trustScore);
+        if (trustScoreResponse.getTransactionTrustScoreData() != null) {
+            transactionTrustScoreData = Mapper.map(trustScoreResponse.getTransactionTrustScoreData()).toTrustScoreData();
+            trustScore = trustScoreResponse.getTransactionTrustScoreData().getTrustScore();
+        }
+        transactionData = createTransactionData(baseTransactions, transactionDescription, trustScore, addressHash, TransactionType.Transfer);
+        transactionData.setTrustScoreResults(Collections.singletonList(transactionTrustScoreData));
+        transactionData.setSenderHash(senderHash);
+        transactionData.setSenderSignature(CryptoUtils.signTransactionData(transactionData, userPrivateKey));
+
 
         return transactionData;
     }

@@ -10,6 +10,7 @@ public class Constants {
     public static final String BALANCE = "/balance";
     public static final String NETWORK_FEE = "/networkFee";
     public static final String FULL_NODE_FEE = "/fee";
+    public static final String NODES = "/nodes";
     public static final String TRANSACTION_TRUST_SCORE = "/transactiontrustscore";
 
     public static final String INSUFFICIENT_FUNDS_MESSAGE = "Balance for address is insufficient!";
