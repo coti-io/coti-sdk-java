@@ -8,10 +8,8 @@ import io.coti.basenode.http.CustomHttpComponentsClientHttpRequestFactory;
 import io.coti.sdk.http.GetTransactionTrustScoreRequest;
 import io.coti.sdk.http.GetTransactionTrustScoreResponse;
 import io.coti.sdk.utils.Constants;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestTemplate;
 
-@Slf4j
 public class TrustScoreData {
 
     private String trustScoreAddress;
@@ -25,12 +23,8 @@ public class TrustScoreData {
         SignatureData signatureData = CryptoHelper.signBytes(transactionHash.getBytes(), userPrivateKey.toHexString());
         GetTransactionTrustScoreRequest transactionTrustScoreRequest = new GetTransactionTrustScoreRequest(userHash, transactionHash, signatureData);
 
-        GetTransactionTrustScoreResponse getTransactionTrustScoreResponse = null;
-        try {
-            getTransactionTrustScoreResponse = restTemplate.postForObject(trustScoreAddress + Constants.TRANSACTION_TRUST_SCORE, transactionTrustScoreRequest, GetTransactionTrustScoreResponse.class);
-        } catch (Exception e) {
-            log.error("Exception for getting TransactionTrustScoreData: ", e);
-        }
+        GetTransactionTrustScoreResponse getTransactionTrustScoreResponse = restTemplate.postForObject(trustScoreAddress + Constants.TRANSACTION_TRUST_SCORE, transactionTrustScoreRequest, GetTransactionTrustScoreResponse.class);
+
         if (getTransactionTrustScoreResponse == null || getTransactionTrustScoreResponse.getStatus().equals("Error")) {
             throw new CotiRunTimeException("Transaction TrustScore Data call failed!");
         }

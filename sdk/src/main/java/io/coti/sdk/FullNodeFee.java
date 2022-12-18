@@ -8,14 +8,12 @@ import io.coti.sdk.http.FullNodeFeeRequest;
 import io.coti.sdk.http.FullNodeFeeResponse;
 import io.coti.sdk.utils.Constants;
 import io.coti.sdk.utils.CryptoUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 
-@Slf4j
 public class FullNodeFee {
 
     private String fullNodeAddress;
@@ -32,13 +30,9 @@ public class FullNodeFee {
         SignatureData signature = CryptoUtils.signFullNodeFeeData(amount, userPrivateKey, nativeCurrencyHash);
         FullNodeFeeRequest fullNodeFeeRequest = new FullNodeFeeRequest(feeIncluded, nativeCurrencyHash, amount, userHash, signature);
 
-        FullNodeFeeResponse fullNodeFee = null;
-        try {
-            HttpEntity<FullNodeFeeRequest> entity = new HttpEntity<>(fullNodeFeeRequest);
-            fullNodeFee = restTemplate.exchange(fullNodeAddress + Constants.FULL_NODE_FEE, HttpMethod.PUT, entity, FullNodeFeeResponse.class).getBody();
-        } catch (Exception e) {
-            log.error("Exception for getting FullNodeFee: ", e);
-        }
+        HttpEntity<FullNodeFeeRequest> entity = new HttpEntity<>(fullNodeFeeRequest);
+        FullNodeFeeResponse fullNodeFee = restTemplate.exchange(fullNodeAddress + Constants.FULL_NODE_FEE, HttpMethod.PUT, entity, FullNodeFeeResponse.class).getBody();
+
         if (fullNodeFee == null || fullNodeFee.getStatus().equals("Error")) {
             throw new CotiRunTimeException("FullNodeFee call failed!");
         }

@@ -8,7 +8,6 @@ import io.coti.sdk.http.GetTransactionTrustScoreResponse;
 import io.coti.sdk.utils.Constants;
 import io.coti.sdk.utils.CryptoUtils;
 import io.coti.sdk.utils.Mapper;
-import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -17,10 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 public class TransactionCreation {
 
-    public String fullNodeAddress;
+    private String fullNodeAddress;
     private String trustScoreAddress;
     private int walletAddressIndex;
     private Hash nativeCurrencyHash;
@@ -39,13 +37,13 @@ public class TransactionCreation {
         this.senderHash = new Hash(userHash);
     }
 
-    public TransactionData createTransactionData(BigDecimal amount, String transactionDescription) throws BalanceException {
-        TransactionData transactionData = null;
+    public TransactionData createTransferTransaction(BigDecimal amount, String transactionDescription, Hash receiverAddress,
+                                                 boolean feeIncluded) throws BalanceException {
         if (balanceNotValid(addressHash, fullNodeAddress, amount)) {
             throw new BalanceException(Constants.INSUFFICIENT_FUNDS_MESSAGE);
         }
         BaseTransactionCreation baseTransactionCreation = new BaseTransactionCreation(nativeCurrencyHash, fullNodeAddress, trustScoreAddress);
-        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTransactions(userPrivateKey, senderHash, amount, addressHash, true);
+        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTransactions(userPrivateKey, senderHash, amount, addressHash, feeIncluded, receiverAddress);
         CryptoUtils.createAndSetBaseTransactionsHash(baseTransactions);
         GetTransactionTrustScoreResponse trustScoreResponse = getTrustScore(baseTransactions, userPrivateKey, senderHash);
         double trustScore = 0;
@@ -54,7 +52,7 @@ public class TransactionCreation {
             transactionTrustScoreData = Mapper.map(trustScoreResponse.getTransactionTrustScoreData()).toTrustScoreData();
             trustScore = trustScoreResponse.getTransactionTrustScoreData().getTrustScore();
         }
-        transactionData = createTransactionData(baseTransactions, transactionDescription, trustScore, addressHash, TransactionType.Transfer);
+        TransactionData transactionData = createTransferTransactionData(baseTransactions, transactionDescription, trustScore, addressHash);
         transactionData.setTrustScoreResults(Collections.singletonList(transactionTrustScoreData));
         transactionData.setSenderHash(senderHash);
         transactionData.setSenderSignature(CryptoUtils.signTransactionData(transactionData, userPrivateKey));
@@ -73,27 +71,18 @@ public class TransactionCreation {
         return trustScoreData.getTransactionTrustScoreData(CryptoUtils.getHashFromBaseTransactionHashesData(baseTransactions), userPrivateKey, senderHash);
     }
 
-    private TransactionData createTransactionData(List<BaseTransactionData> baseTransactions, String description, double trustScore,
-                                                  Hash addressHash, TransactionType transfer) {
+    private TransactionData createTransferTransactionData(List<BaseTransactionData> baseTransactions, String description, double trustScore,
+                                                  Hash addressHash) {
         Map<Hash, Integer> addressHashToAddressIndexMap = new HashMap<>();
         addressHashToAddressIndexMap.put(addressHash, walletAddressIndex);
-        TransactionData transactionData = createNewTransaction(baseTransactions, description, trustScore, Instant.now(), transfer);
-        transactionData.setAttachmentTime(Instant.now());
-        try {
-            CryptoUtils.signBaseTransactions(transactionData, addressHashToAddressIndexMap);
-        } catch (Exception e) {
-            log.error("Transaction signing base transactions error", e);
-        }
+        Instant creationTime = Instant.now();
+        TransactionData transactionData = new TransactionData(baseTransactions, description, trustScore, creationTime, TransactionType.Transfer);
+        transactionData.setAmount(getTotalNativeAmount(transactionData));
+        transactionData.setAttachmentTime(creationTime);
+        CryptoUtils.signBaseTransactions(transactionData, addressHashToAddressIndexMap);
+
         TransactionCrypto transactionCrypto = new TransactionCrypto();
         transactionCrypto.signMessage(transactionData);
-        log.info("New transfer transaction {} created successfully", transactionData.getHash());
-        return transactionData;
-    }
-
-    private TransactionData createNewTransaction(List<BaseTransactionData> baseTransactions, String transactionDescription,
-                                                 double senderTrustScore, Instant createTime, TransactionType type) {
-        TransactionData transactionData = new TransactionData(baseTransactions, transactionDescription, senderTrustScore, createTime, type);
-        transactionData.setAmount(getTotalNativeAmount(transactionData));
         return transactionData;
     }
 

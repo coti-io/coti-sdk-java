@@ -11,8 +11,8 @@ import io.coti.basenode.http.CustomHttpComponentsClientHttpRequestFactory;
 import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.AddTransactionResponse;
 import io.coti.sdk.utils.CryptoUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.junit.Test;
 import org.springframework.beans.factory.config.MethodInvokingBean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -22,17 +22,58 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Random;
 
-@Slf4j
-public class TransferExample {
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+public class TransferExampleTest {
+
+    private static void setNodePrivateKey(String userPrivateKey) throws Exception {
+        MethodInvokingBean methodInvokingBean = new MethodInvokingBean();
+        methodInvokingBean.setStaticMethod(NodeCryptoHelper.class.getName() + ".nodePrivateKey");
+        methodInvokingBean.setArguments(userPrivateKey);
+        methodInvokingBean.afterPropertiesSet();
+    }
+
+    public static Hash sendTransaction(AddTransactionRequest request, String fullNodeAddress)  {
+        RestTemplate restTemplate = new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
+        HttpEntity<AddTransactionRequest> entity = new HttpEntity<>(request);
+        AddTransactionResponse response = restTemplate.exchange(fullNodeAddress + "/transaction", HttpMethod.PUT, entity, AddTransactionResponse.class).getBody();
+
+        if (response != null && response.getStatus().equals("Success")) {
+            System.out.println("####################################################################");
+            System.out.println("#################      " + response.getMessage());
+            System.out.println("# " + request.getHash() + " #");
+            System.out.println("####################################################################");
+            return request.getHash();
+        }
+        return null;
+    }
 
     public static void main(String[] args) throws Exception {
+        TransferExampleTest transferExampleTest = new TransferExampleTest();
+        transferExampleTest.transferTest();
+    }
+
+    @Test
+    public void transferTest() throws Exception {
         PropertiesConfiguration config = new PropertiesConfiguration();
-        config.load("transfer.properties");
+        config.load("src/test/resources/transfer.properties");
 
         String seed = config.getString("seed");
-        if (seed.equals("")) {
-            throw new Exception("seed needed");
+        if (seed == null || seed.equals("")) {
+            seed = System.getenv("TESTNET_SEED");
+            if (seed == null || seed.equals("")) {
+                throw new Exception("seed needed");
+            }
         }
+        String receiverAddressString = config.getString("receiver.address");
+        if (receiverAddressString == null || receiverAddressString.equals("")) {
+            receiverAddressString = System.getenv("TESTNET_ADDRESS");
+            if (receiverAddressString == null || receiverAddressString.equals("")) {
+                throw new Exception("receiver address needed");
+            }
+        }
+        Hash receiverAddress = new Hash(receiverAddressString);
+
         Hash nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash("COTI");
         String userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed).getBytes())).toHexString();
         setNodePrivateKey(userPrivateKey);
@@ -43,8 +84,8 @@ public class TransferExample {
         String transactionDescription = config.getString("transaction.description");
         int transactionAmount = config.getInt("transfer.amount");
 
-        String trustScoreAddress = null;
-        String fullNodeAddress = null;
+        String trustScoreAddress;
+        String fullNodeAddress;
         String nodeManagerAddress = config.getString("node.manager.address");
         if (!(nodeManagerAddress == null || nodeManagerAddress.equals(""))) {
             NetworkDetails networkDetails = new NetworkDetails();
@@ -65,39 +106,11 @@ public class TransferExample {
             fullNodeAddress = config.getString("full.node.backend.address");
         }
 
+        boolean feeIncluded = config.getBoolean("fee.included");
         TransactionCreation transactionCreation = new TransactionCreation(seed, userHash, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
-        AddTransactionRequest request = null;
-        request = new AddTransactionRequest(transactionCreation.createTransactionData(new BigDecimal(transactionAmount), transactionDescription));
-        sendTransaction(request, fullNodeAddress);
-    }
+        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTransferTransaction(new BigDecimal(transactionAmount), transactionDescription, receiverAddress, feeIncluded));
+        Hash transactionTx = sendTransaction(request, fullNodeAddress);
 
-    private static void setNodePrivateKey(String userPrivateKey) throws Exception {
-        MethodInvokingBean methodInvokingBean = new MethodInvokingBean();
-        methodInvokingBean.setStaticMethod(NodeCryptoHelper.class.getName() + ".nodePrivateKey");
-        methodInvokingBean.setArguments(userPrivateKey);
-        try {
-            methodInvokingBean.afterPropertiesSet();
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
-    public static void sendTransaction(AddTransactionRequest request, String fullNodeAddress) throws Exception {
-        RestTemplate restTemplate = new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
-        AddTransactionResponse response = null;
-        try {
-            HttpEntity<AddTransactionRequest> entity = new HttpEntity<>(request);
-            response = restTemplate.exchange(fullNodeAddress + "/transaction", HttpMethod.PUT, entity, AddTransactionResponse.class).getBody();
-        } catch (Exception e) {
-            throw e;
-        }
-        if (response != null && response.getStatus().equals("Success")) {
-            log.info("####################################################################");
-            log.info("#################      {}      ####################", response.getMessage());
-            log.info("# {} #", request.getHash());
-            log.info("####################################################################");
-        } else {
-            throw new Exception("Adding new Transaction failed!");
-        }
+        assertThat(transactionTx).isNotNull();
     }
 }

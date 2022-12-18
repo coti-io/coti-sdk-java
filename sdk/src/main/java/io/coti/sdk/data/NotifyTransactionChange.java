@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.coti.basenode.http.data.TransactionResponseData;
 import io.coti.basenode.http.data.TransactionStatus;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Data
 public class NotifyTransactionChange {
 

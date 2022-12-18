@@ -4,14 +4,12 @@ import io.coti.basenode.data.*;
 import io.coti.sdk.http.FullNodeFeeResponse;
 import io.coti.sdk.http.NetworkFeeResponse;
 import io.coti.sdk.utils.Mapper;
-import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 public class BaseTransactionCreation {
 
     private Hash nativeCurrencyHash;
@@ -25,7 +23,8 @@ public class BaseTransactionCreation {
     }
 
 
-    public List<BaseTransactionData> createBaseTransactions(Hash userPrivateKey, Hash userHash, BigDecimal amount, Hash addressHash, boolean feeIncluded) {
+    public List<BaseTransactionData> createBaseTransactions(Hash userPrivateKey, Hash userHash, BigDecimal amount,
+                                                            Hash addressHash, boolean feeIncluded, Hash receiverAddress) {
         FullNodeFee fullNodeFee = new FullNodeFee(fullNodeAddress, nativeCurrencyHash);
         FullNodeFeeResponse fullNodeFeeResponse = fullNodeFee.createFullNodeFee(userPrivateKey, userHash, amount, feeIncluded);
         FullNodeFeeData fullNodeFeeData = Mapper.map(fullNodeFeeResponse.getFullNodeFee()).toFullNodeFeeData();
@@ -48,7 +47,7 @@ public class BaseTransactionCreation {
         baseTransactions.add(fullNodeFeeData);
         baseTransactions.add(validatedNetworkFeeData);
         baseTransactions.add(new InputBaseTransactionData(addressHash, nativeCurrencyHash, fullAmount.multiply(new BigDecimal(-1)), Instant.now()));
-        baseTransactions.add(new ReceiverBaseTransactionData(addressHash, nativeCurrencyHash, amount, nativeCurrencyHash, amount, Instant.now()));
+        baseTransactions.add(new ReceiverBaseTransactionData(receiverAddress, nativeCurrencyHash, amount, nativeCurrencyHash, amount, Instant.now()));
 
         return baseTransactions;
     }
