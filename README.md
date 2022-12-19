@@ -1,7 +1,7 @@
 COTI Node Java SDK
 =============
 
-[![Maven Package](https://github.com/coti-io/coti-sdk-java/actions/workflows/maven-publish.yml/badge.svg)](https://github.com/coti-io/coti-sdk-java/actions/workflows/maven-publish.yml)
+[![Maven Package](https://github.com/coti-io/coti-sdk-java/workflows/Maven%20Package/badge.svg)](https://github.com/coti-io/coti-sdk-java/actions/workflows/maven-publish.yml)
 
 
 ---
