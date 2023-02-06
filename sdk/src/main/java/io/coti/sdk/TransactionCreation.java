@@ -1,6 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.NodeCryptoHelper;
+import io.coti.basenode.crypto.CryptoHelper;
 import io.coti.basenode.crypto.TransactionCrypto;
 import io.coti.basenode.data.*;
 import io.coti.basenode.exceptions.BalanceException;
@@ -25,6 +25,7 @@ public class TransactionCreation {
     private Hash userPrivateKey;
     private Hash senderHash;
     private Hash addressHash;
+    private String seed;
 
     public TransactionCreation(String seed, String userHash, String trustScoreAddress, String fullNodeAddress,
                                int walletAddressIndex, Hash nativeCurrencyHash) {
@@ -32,13 +33,14 @@ public class TransactionCreation {
         this.fullNodeAddress = fullNodeAddress;
         this.walletAddressIndex = walletAddressIndex;
         this.nativeCurrencyHash = nativeCurrencyHash;
-        this.addressHash = NodeCryptoHelper.generateAddress(seed, walletAddressIndex);
+        this.seed = seed;
+        this.addressHash = CryptoHelper.generateAddress(seed, walletAddressIndex);
         this.userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed)).getBytes());
         this.senderHash = new Hash(userHash);
     }
 
     public TransactionData createTransferTransaction(BigDecimal amount, String transactionDescription, Hash receiverAddress,
-                                                 boolean feeIncluded) throws BalanceException {
+                                                     boolean feeIncluded) throws BalanceException {
         if (balanceNotValid(addressHash, fullNodeAddress, amount)) {
             throw new BalanceException(Constants.INSUFFICIENT_FUNDS_MESSAGE);
         }
@@ -72,17 +74,17 @@ public class TransactionCreation {
     }
 
     private TransactionData createTransferTransactionData(List<BaseTransactionData> baseTransactions, String description, double trustScore,
-                                                  Hash addressHash) {
+                                                          Hash addressHash) {
         Map<Hash, Integer> addressHashToAddressIndexMap = new HashMap<>();
         addressHashToAddressIndexMap.put(addressHash, walletAddressIndex);
         Instant creationTime = Instant.now();
         TransactionData transactionData = new TransactionData(baseTransactions, description, trustScore, creationTime, TransactionType.Transfer);
         transactionData.setAmount(getTotalNativeAmount(transactionData));
         transactionData.setAttachmentTime(creationTime);
-        CryptoUtils.signBaseTransactions(transactionData, addressHashToAddressIndexMap);
+        CryptoUtils.signBaseTransactions(transactionData, addressHashToAddressIndexMap, seed);
 
         TransactionCrypto transactionCrypto = new TransactionCrypto();
-        transactionCrypto.signMessage(transactionData);
+        transactionCrypto.signMessage(transactionData, senderHash, userPrivateKey.toHexString());
         return transactionData;
     }
 

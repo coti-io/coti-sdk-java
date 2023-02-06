@@ -1,8 +1,7 @@
 COTI Node Java SDK
 =============
 
-[![Maven Package](https://github.com/coti-io/coti-sdk-java/actions/workflows/maven-publish.yml/badge.svg)](https://github.com/coti-io/coti-sdk-java/actions/workflows/maven-publish.yml)
-
+[![Maven Package](https://github.com/coti-io/coti-sdk-java/workflows/Maven%20Package/badge.svg)](https://github.com/coti-io/coti-sdk-java/actions/workflows/maven-publish.yml)
 
 ---
 
@@ -16,9 +15,11 @@ You can use the following in your pom.xml to import jar (you should also refer t
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
 
-Also, it is available to download: https://s01.oss.sonatype.org/service/local/repositories/snapshots/content/io/coti/sdk/lib/0.0.1-SNAPSHOT/lib-0.0.1-20221218.220331-6.jar
+Also, it is available to
+download: https://s01.oss.sonatype.org/service/local/repositories/snapshots/content/io/coti/sdk/lib/0.0.1-SNAPSHOT/lib-0.0.1-20221218.220331-6.jar
 
 Next Ahead:
+
 * Code refactoring for objects used as DAO
 * SDK version that will include all dependencies
 * Supporting websockets

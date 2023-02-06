@@ -12,7 +12,8 @@ public class NetworkFeeResponse extends BaseResponse {
     @NonNull
     private NetworkFeeResponseData networkFeeData;
 
-    public NetworkFeeResponse() { } //NOSONAR
+    public NetworkFeeResponse() {
+    } //NOSONAR
 
     public NetworkFeeResponse(NetworkFeeResponseData networkFeeResponseData) {
         this.networkFeeData = networkFeeResponseData;

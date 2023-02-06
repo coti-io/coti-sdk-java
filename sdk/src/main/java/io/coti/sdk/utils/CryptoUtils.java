@@ -57,13 +57,13 @@ public class CryptoUtils {
         return baseTransactionHashBuffer.array();
     }
 
-    public static void signBaseTransactions(TransactionData transactionData, Map<Hash, Integer> addressHashToAddressIndexMap) {
+    public static void signBaseTransactions(TransactionData transactionData, Map<Hash, Integer> addressHashToAddressIndexMap, String seed) {
         TransactionCrypto transactionCrypto = new TransactionCrypto();
         if (transactionData.getHash() == null) {
             transactionCrypto.setTransactionHash(transactionData);
         }
         for (BaseTransactionData baseTransactionData : transactionData.getInputBaseTransactions()) {
-            BaseTransactionCrypto.getByBaseTransactionClass(baseTransactionData.getClass()).signMessage(transactionData, baseTransactionData, addressHashToAddressIndexMap.get(baseTransactionData.getAddressHash()));
+            BaseTransactionCrypto.getByBaseTransactionClass(baseTransactionData.getClass()).signMessage(transactionData, baseTransactionData, addressHashToAddressIndexMap.get(baseTransactionData.getAddressHash()), seed);
         }
     }
 

@@ -1,7 +1,6 @@
 package io.coti.sdk;
 
 import io.coti.basenode.crypto.CryptoHelper;
-import io.coti.basenode.crypto.NodeCryptoHelper;
 import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
 import io.coti.basenode.data.Hash;
 import io.coti.basenode.data.NetworkData;
@@ -12,8 +11,7 @@ import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.AddTransactionResponse;
 import io.coti.sdk.utils.CryptoUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.junit.Test;
-import org.springframework.beans.factory.config.MethodInvokingBean;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
@@ -25,15 +23,8 @@ import java.util.Random;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class TransferExampleTest {
-
-    private static void setNodePrivateKey(String userPrivateKey) throws Exception {
-        MethodInvokingBean methodInvokingBean = new MethodInvokingBean();
-        methodInvokingBean.setStaticMethod(NodeCryptoHelper.class.getName() + ".nodePrivateKey");
-        methodInvokingBean.setArguments(userPrivateKey);
-        methodInvokingBean.afterPropertiesSet();
-    }
-
-    public static Hash sendTransaction(AddTransactionRequest request, String fullNodeAddress)  {
+    
+    public static Hash sendTransaction(AddTransactionRequest request, String fullNodeAddress) {
         RestTemplate restTemplate = new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
         HttpEntity<AddTransactionRequest> entity = new HttpEntity<>(request);
         AddTransactionResponse response = restTemplate.exchange(fullNodeAddress + "/transaction", HttpMethod.PUT, entity, AddTransactionResponse.class).getBody();
@@ -54,7 +45,7 @@ public class TransferExampleTest {
     }
 
     @Test
-    public void transferTest() throws Exception {
+    void transferTest() throws Exception {
         PropertiesConfiguration config = new PropertiesConfiguration();
         config.load("src/test/resources/transfer.properties");
 
@@ -76,7 +67,6 @@ public class TransferExampleTest {
 
         Hash nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash("COTI");
         String userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed).getBytes())).toHexString();
-        setNodePrivateKey(userPrivateKey);
 
         String userHash = CryptoHelper.getPublicKeyFromPrivateKey(userPrivateKey);
 
