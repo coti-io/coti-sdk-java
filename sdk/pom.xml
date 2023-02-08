@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.coti</groupId>
         <artifactId>sdk</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.2-SNAPSHOT</version>
     </parent>
     <groupId>io.coti.sdk</groupId>
     <artifactId>lib</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <description>coti-sdk-java</description>
     <properties>
         <java.version>1.8</java.version>
