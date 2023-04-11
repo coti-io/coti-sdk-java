@@ -1,6 +1,7 @@
 package io.coti.sdk.utils;
 
 import io.coti.basenode.data.*;
+import io.coti.basenode.http.data.TokenGenerationFeeResponseData;
 import io.coti.basenode.http.data.TrustScoreNodeResultResponseData;
 import io.coti.sdk.data.FullNodeFeeResponseData;
 import io.coti.sdk.data.NetworkFeeResponseData;
@@ -63,5 +64,16 @@ public class Mapper {
             trustScoreData.setTrustScoreNodeSignature(responseData.getTrustScoreNodeSignature());
             return trustScoreData;
         };
+    }
+
+    public TokenGenerationFeeBaseTransactionData map(TokenGenerationFeeResponseData tokenGenerationFeeResponseData, TokenGenerationServiceData tokenGenerationServiceData) {
+        return new TokenGenerationFeeBaseTransactionData(
+                new Hash(tokenGenerationFeeResponseData.getAddressHash()),
+                new Hash(tokenGenerationFeeResponseData.getCurrencyHash()),
+                new Hash(tokenGenerationFeeResponseData.getSignerHash()),
+                tokenGenerationFeeResponseData.getAmount(),
+                tokenGenerationFeeResponseData.getCreateTime(),
+                tokenGenerationServiceData
+        );
     }
 }

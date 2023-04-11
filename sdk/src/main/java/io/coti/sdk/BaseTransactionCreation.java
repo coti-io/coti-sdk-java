@@ -23,8 +23,8 @@ public class BaseTransactionCreation {
     }
 
 
-    public List<BaseTransactionData> createBaseTransactions(Hash userPrivateKey, Hash userHash, BigDecimal amount,
-                                                            Hash addressHash, boolean feeIncluded, Hash receiverAddress) {
+    public List<BaseTransactionData> createBaseTransferTransactions(Hash userPrivateKey, Hash userHash, BigDecimal amount,
+                                                                    Hash addressHash, boolean feeIncluded, Hash receiverAddress) {
         FullNodeFee fullNodeFee = new FullNodeFee(fullNodeAddress, nativeCurrencyHash);
         FullNodeFeeResponse fullNodeFeeResponse = fullNodeFee.createFullNodeFee(userPrivateKey, userHash, amount, feeIncluded);
         FullNodeFeeData fullNodeFeeData = Mapper.map(fullNodeFeeResponse.getFullNodeFee()).toFullNodeFeeData();
@@ -49,6 +49,14 @@ public class BaseTransactionCreation {
         baseTransactions.add(new InputBaseTransactionData(addressHash, nativeCurrencyHash, fullAmount.multiply(new BigDecimal(-1)), Instant.now()));
         baseTransactions.add(new ReceiverBaseTransactionData(receiverAddress, nativeCurrencyHash, amount, nativeCurrencyHash, amount, Instant.now()));
 
+        return baseTransactions;
+    }
+
+    public List<BaseTransactionData> createBaseGenerateTokenTransactions(FullNodeFeeData fullNodeFeeData, BaseTransactionData tokenGenerationFeeBT, Hash addressHash, BigDecimal amount) {
+        List<BaseTransactionData> baseTransactions = new ArrayList<>();
+        baseTransactions.add(fullNodeFeeData);
+        baseTransactions.add(tokenGenerationFeeBT);
+        baseTransactions.add(new InputBaseTransactionData(addressHash, fullNodeFeeData.getCurrencyHash(), amount.multiply(new BigDecimal(-1)), Instant.now()));
         return baseTransactions;
     }
 }

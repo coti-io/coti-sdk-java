@@ -6,38 +6,19 @@ import io.coti.basenode.data.Hash;
 import io.coti.basenode.data.NetworkData;
 import io.coti.basenode.data.NetworkNodeData;
 import io.coti.basenode.data.NodeType;
-import io.coti.basenode.http.CustomHttpComponentsClientHttpRequestFactory;
 import io.coti.sdk.http.AddTransactionRequest;
-import io.coti.sdk.http.AddTransactionResponse;
 import io.coti.sdk.utils.CryptoUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Random;
 
+import static io.coti.sdk.utils.Constants.NATIVE_CURRENCY_SYMBOL;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class TransferExampleTest {
-    
-    public static Hash sendTransaction(AddTransactionRequest request, String fullNodeAddress) {
-        RestTemplate restTemplate = new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
-        HttpEntity<AddTransactionRequest> entity = new HttpEntity<>(request);
-        AddTransactionResponse response = restTemplate.exchange(fullNodeAddress + "/transaction", HttpMethod.PUT, entity, AddTransactionResponse.class).getBody();
-
-        if (response != null && response.getStatus().equals("Success")) {
-            System.out.println("####################################################################");
-            System.out.println("#################      " + response.getMessage());
-            System.out.println("# " + request.getHash() + " #");
-            System.out.println("####################################################################");
-            return request.getHash();
-        }
-        return null;
-    }
 
     public static void main(String[] args) throws Exception {
         TransferExampleTest transferExampleTest = new TransferExampleTest();
@@ -65,14 +46,14 @@ public class TransferExampleTest {
         }
         Hash receiverAddress = new Hash(receiverAddressString);
 
-        Hash nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash("COTI");
+        Hash nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash(NATIVE_CURRENCY_SYMBOL);
         String userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed).getBytes())).toHexString();
 
         String userHash = CryptoHelper.getPublicKeyFromPrivateKey(userPrivateKey);
 
         int walletAddressIndex = config.getInt("source.address.index");
         String transactionDescription = config.getString("transaction.description");
-        int transactionAmount = config.getInt("transfer.amount");
+        BigDecimal transactionAmount = config.getBigDecimal("transfer.amount");
 
         String trustScoreAddress;
         String fullNodeAddress;
@@ -98,8 +79,8 @@ public class TransferExampleTest {
 
         boolean feeIncluded = config.getBoolean("fee.included");
         TransactionCreation transactionCreation = new TransactionCreation(seed, userHash, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
-        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTransferTransaction(new BigDecimal(transactionAmount), transactionDescription, receiverAddress, feeIncluded));
-        Hash transactionTx = sendTransaction(request, fullNodeAddress);
+        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTransferTransaction(transactionAmount, transactionDescription, receiverAddress, feeIncluded));
+        Hash transactionTx = TransactionUtils.sendTransaction(request, fullNodeAddress);
 
         assertThat(transactionTx).isNotNull();
     }

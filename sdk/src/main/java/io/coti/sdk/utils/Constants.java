@@ -14,6 +14,7 @@ public class Constants {
     public static final String TRANSACTION_TRUST_SCORE = "/transactiontrustscore";
 
     public static final String INSUFFICIENT_FUNDS_MESSAGE = "Balance for address is insufficient!";
+    public static final String INSUFFICIENT_TRUST_SCORE_MESSAGE = "Trust score for this user is insufficient!";
 
     public static final int ZERO = 0;
     public static final int BASE_TRANSACTION_HASH_SIZE = 32;
