@@ -2,10 +2,7 @@ package io.coti.sdk;
 
 import io.coti.basenode.crypto.CryptoHelper;
 import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
-import io.coti.basenode.data.BaseTransactionData;
-import io.coti.basenode.data.CurrencyTypeRegistrationData;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.OriginatorCurrencyData;
+import io.coti.basenode.data.*;
 import io.coti.basenode.http.GenerateTokenFeeRequest;
 import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.FullNodeFeeResponse;
@@ -48,13 +45,11 @@ class TokenGenerationTest {
         String tokenDescription = tokenConfig.getString("description");
         BigDecimal totalSupply = tokenConfig.getBigDecimal("totalSupply");
         int scale = tokenConfig.getInt("scale");
-        OriginatorCurrencyData originatorCurrencyData = TokenGeneration.getOriginatorCurrencyData(userPrivateKey,
-                userHash, tokenName, tokenSymbol, tokenDescription, totalSupply, scale);
+        OriginatorCurrencyData originatorCurrencyData = TokenManagement.getOriginatorCurrencyData(userPrivateKey, userHash, tokenName, tokenSymbol, tokenDescription, totalSupply, scale);
 
         String rateSource = tokenConfig.getString("rateSource");
         String protectionModel = tokenConfig.getString("protectionModel");
-        CurrencyTypeRegistrationData currencyTypeRegistrationData = TokenGeneration.getCurrencyTypeRegistrationData(userPrivateKey,
-                userHash, tokenSymbol, rateSource, protectionModel);
+        CurrencyTypeRegistrationData currencyTypeRegistrationData = TokenManagement.getCurrencyTypeRegistrationData(userPrivateKey, userHash, tokenSymbol, rateSource, protectionModel);
 
         GenerateTokenFeeRequest generateTokenFeeRequest = new GenerateTokenFeeRequest();
         generateTokenFeeRequest.setCurrencyTypeData(currencyTypeRegistrationData);
@@ -65,13 +60,13 @@ class TokenGenerationTest {
         String trustScoreAddress = config.getString("trust.score.backend.address");
         int walletAddressIndex = config.getInt("source.address.index");
 
-        BaseTransactionData tokenGenerationFeeBT = TokenGeneration.getTokenGenerationFeeBT(generateTokenFeeRequest, financialUrl);
+        BaseTransactionData tokenGenerationFeeBT = TokenManagement.getTokenGenerationFeeBT(generateTokenFeeRequest, financialUrl);
         BigDecimal amount = tokenGenerationFeeBT.getAmount();
         FullNodeFee fullNodeFee = new FullNodeFee(fullNodeAddress, nativeCurrencyHash);
         FullNodeFeeResponse fullNodeFeeResponse = fullNodeFee.createFullNodeFee(new Hash(userPrivateKey), new Hash(userHash), amount, false);
         String transactionDescription = "Generate Token";
         TransactionCreation transactionCreation = new TransactionCreation(seed, userHash, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
-        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTokenGenerationTransaction(tokenGenerationFeeBT, fullNodeFeeResponse, transactionDescription));
+        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTokenTransactionByType(tokenGenerationFeeBT, fullNodeFeeResponse, transactionDescription, TransactionType.TokenGeneration));
         Hash transactionTx = TransactionUtils.sendTransaction(request, fullNodeAddress);
 
         assertThat(transactionTx).isNotNull();

@@ -1,13 +1,9 @@
 package io.coti.sdk.utils;
 
-import io.coti.basenode.crypto.BaseTransactionCrypto;
-import io.coti.basenode.crypto.CryptoHelper;
-import io.coti.basenode.crypto.TransactionCrypto;
-import io.coti.basenode.crypto.TransactionSenderCrypto;
-import io.coti.basenode.data.BaseTransactionData;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.SignatureData;
-import io.coti.basenode.data.TransactionData;
+import io.coti.basenode.crypto.*;
+import io.coti.basenode.data.*;
+import io.coti.basenode.http.GetTokenMintingFeeQuoteRequest;
+import io.coti.basenode.http.GetUserTokensRequest;
 import lombok.experimental.UtilityClass;
 
 import javax.validation.constraints.NotNull;
@@ -48,7 +44,7 @@ public class CryptoUtils {
         return CryptoHelper.cryptoHash(bytesToHash);
     }
 
-    private static byte[] getBaseTransactionsHashesBytes(List<BaseTransactionData> baseTransactions) {
+    private byte[] getBaseTransactionsHashesBytes(List<BaseTransactionData> baseTransactions) {
         ByteBuffer baseTransactionHashBuffer = ByteBuffer.allocate(baseTransactions.size() * Constants.BASE_TRANSACTION_HASH_SIZE);
         baseTransactions.forEach(baseTransaction -> {
             byte[] baseTransactionHashBytes = baseTransaction.getHash().getBytes();
@@ -57,7 +53,7 @@ public class CryptoUtils {
         return baseTransactionHashBuffer.array();
     }
 
-    public static void signBaseTransactions(TransactionData transactionData, Map<Hash, Integer> addressHashToAddressIndexMap, String seed) {
+    public void signBaseTransactions(TransactionData transactionData, Map<Hash, Integer> addressHashToAddressIndexMap, String seed) {
         TransactionCrypto transactionCrypto = new TransactionCrypto();
         if (transactionData.getHash() == null) {
             transactionCrypto.setTransactionHash(transactionData);
@@ -67,9 +63,44 @@ public class CryptoUtils {
         }
     }
 
-    public static SignatureData signTransactionData(TransactionData transactionData, Hash userPrivateKey) {
+    public SignatureData signTransactionData(TransactionData transactionData, Hash userPrivateKey) {
         TransactionSenderCrypto transactionSenderCrypto = new TransactionSenderCrypto();
         byte[] bytesToHash = transactionSenderCrypto.getSignatureMessage(transactionData);
+        return CryptoHelper.signBytes(bytesToHash, userPrivateKey.toHexString());
+    }
+
+    public SignatureData signGetUserTokensRequest(GetUserTokensRequest userTokensRequest, Hash userPrivateKey) {
+        GetUserTokensRequestCrypto userTokensRequestCrypto = new GetUserTokensRequestCrypto();
+        byte[] bytesToHash = userTokensRequestCrypto.getSignatureMessage(userTokensRequest);
+        return CryptoHelper.signBytes(bytesToHash, userPrivateKey.toHexString());
+    }
+
+    public SignatureData signOriginatorCurrencyData(OriginatorCurrencyData originatorCurrencyData, String userPrivateKey) {
+        OriginatorCurrencyCrypto originatorCurrencyCrypto = new OriginatorCurrencyCrypto();
+        byte[] bytesToHash = originatorCurrencyCrypto.getSignatureMessage(originatorCurrencyData);
+        return CryptoHelper.signBytes(bytesToHash, userPrivateKey);
+    }
+
+    public SignatureData signCurrencyTypeRegistrationData(CurrencyTypeRegistrationData currencyTypeRegistrationData, String userPrivateKey) {
+        CurrencyTypeRegistrationCrypto currencyTypeRegistrationCrypto = new CurrencyTypeRegistrationCrypto();
+        byte[] bytesToHash = currencyTypeRegistrationCrypto.getSignatureMessage(currencyTypeRegistrationData);
+        return CryptoHelper.signBytes(bytesToHash, userPrivateKey);
+    }
+
+    public SignatureData signGetTokenMintingFeeQuoteRequest(GetTokenMintingFeeQuoteRequest getTokenMintingFeeQuoteRequest, Hash userPrivateKey) {
+        byte[] currencyHashInBytes = getTokenMintingFeeQuoteRequest.getCurrencyHash().getBytes();
+        byte[] amountInBytes = getTokenMintingFeeQuoteRequest.getMintingAmount().stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
+        byte[] createTimeInBytes = ByteBuffer.allocate(Long.BYTES).putLong(getTokenMintingFeeQuoteRequest.getCreateTime().toEpochMilli()).array();
+
+        ByteBuffer getMintingQuotesRequestBuffer =
+                ByteBuffer.allocate(currencyHashInBytes.length + amountInBytes.length + createTimeInBytes.length)
+                        .put(currencyHashInBytes).put(amountInBytes).put(createTimeInBytes);
+        return CryptoHelper.signBytes(CryptoHelper.cryptoHash(getMintingQuotesRequestBuffer.array()).getBytes(), userPrivateKey.toHexString());
+    }
+
+    public SignatureData signTokenMintingServiceData(TokenMintingServiceData tokenMintingServiceData, Hash userPrivateKey) {
+        TokenMintingCrypto tokenMintingCrypto = new TokenMintingCrypto();
+        byte[] bytesToHash = tokenMintingCrypto.getSignatureMessage(tokenMintingServiceData);
         return CryptoHelper.signBytes(bytesToHash, userPrivateKey.toHexString());
     }
 }

@@ -53,19 +53,20 @@ public class TransactionCreation {
         return createTransactionDataByType(transactionDescription, baseTransactions, TransactionType.Transfer);
     }
 
-    public TransactionData createTokenGenerationTransaction(BaseTransactionData tokenGenerationFeeBT, FullNodeFeeResponse fullNodeFeeResponse, String transactionDescription) {
+    public TransactionData createTokenTransactionByType(BaseTransactionData tokenFeeBT, FullNodeFeeResponse fullNodeFeeResponse,
+                                                        String transactionDescription, TransactionType transactionType) {
         FullNodeFeeData fullNodeFeeData = Mapper.map(fullNodeFeeResponse.getFullNodeFee()).toFullNodeFeeData();
         fullNodeFeeData.setHash(new Hash(fullNodeFeeResponse.getFullNodeFee().getHash()));
         fullNodeFeeData.setSignature(fullNodeFeeResponse.getFullNodeFee().getSignatureData());
 
-        BigDecimal amount = tokenGenerationFeeBT.getAmount().add(fullNodeFeeData.getAmount());
+        BigDecimal amount = tokenFeeBT.getAmount().add(fullNodeFeeData.getAmount());
         if (balanceNotValid(addressHash, fullNodeAddress, amount)) {
             throw new BalanceException(Constants.INSUFFICIENT_FUNDS_MESSAGE);
         }
 
         BaseTransactionCreation baseTransactionCreation = new BaseTransactionCreation(nativeCurrencyHash, fullNodeAddress, trustScoreAddress);
-        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseGenerateTokenTransactions(fullNodeFeeData, tokenGenerationFeeBT, addressHash, amount);
-        return createTransactionDataByType(transactionDescription, baseTransactions, TransactionType.TokenGeneration);
+        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTokenTransactions(fullNodeFeeData, tokenFeeBT, addressHash, amount);
+        return createTransactionDataByType(transactionDescription, baseTransactions, transactionType);
     }
 
     private boolean balanceNotValid(Hash addressHash, String fullNodeAddress, BigDecimal amount) {
