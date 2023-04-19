@@ -33,7 +33,7 @@ public class FullNodeFee {
         HttpEntity<FullNodeFeeRequest> entity = new HttpEntity<>(fullNodeFeeRequest);
         FullNodeFeeResponse fullNodeFee = restTemplate.exchange(fullNodeAddress + Constants.FULL_NODE_FEE, HttpMethod.PUT, entity, FullNodeFeeResponse.class).getBody();
 
-        if (fullNodeFee == null || fullNodeFee.getStatus().equals("Error")) {
+        if (fullNodeFee == null || fullNodeFee.getStatus().equals(Constants.ERROR)) {
             throw new CotiRunTimeException("FullNodeFee call failed!");
         }
         return fullNodeFee;

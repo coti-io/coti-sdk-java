@@ -49,7 +49,7 @@ public class TransactionCreation {
             throw new BalanceException(Constants.INSUFFICIENT_FUNDS_MESSAGE);
         }
         BaseTransactionCreation baseTransactionCreation = new BaseTransactionCreation(nativeCurrencyHash, fullNodeAddress, trustScoreAddress);
-        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTransferTransactions(userPrivateKey, senderHash, amount, addressHash, feeIncluded, receiverAddress);
+        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createTransferBaseTransactions(userPrivateKey, senderHash, amount, addressHash, feeIncluded, receiverAddress);
         return createTransactionDataByType(transactionDescription, baseTransactions, TransactionType.Transfer);
     }
 
@@ -65,7 +65,7 @@ public class TransactionCreation {
         }
 
         BaseTransactionCreation baseTransactionCreation = new BaseTransactionCreation(nativeCurrencyHash, fullNodeAddress, trustScoreAddress);
-        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createBaseTokenTransactions(fullNodeFeeData, tokenFeeBT, addressHash, amount);
+        List<BaseTransactionData> baseTransactions = baseTransactionCreation.createTokenBaseTransactions(fullNodeFeeData, tokenFeeBT, addressHash, amount);
         return createTransactionDataByType(transactionDescription, baseTransactions, transactionType);
     }
 
@@ -99,7 +99,7 @@ public class TransactionCreation {
     }
 
     private TransactionTrustScoreData getTrustScoreData(List<BaseTransactionData> baseTransactions) {
-        TrustScoreData trustScoreData = new TrustScoreData(trustScoreAddress);
+        TrustScoreUtilities trustScoreData = new TrustScoreUtilities(trustScoreAddress);
         GetTransactionTrustScoreResponse trustScoreResponse = trustScoreData.getTransactionTrustScoreData(CryptoUtils.getHashFromBaseTransactionHashesData(baseTransactions), userPrivateKey, senderHash);
         double trustScore = 0;
         TransactionTrustScoreData transactionTrustScoreData = new TransactionTrustScoreData(trustScore);

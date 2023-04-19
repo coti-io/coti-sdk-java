@@ -28,7 +28,7 @@ public class NetworkFee {
         HttpEntity<NetworkFeeRequest> entity = new HttpEntity<>(networkFeeRequest);
         NetworkFeeResponse networkFeeResponse = restTemplate.exchange(trustScoreAddress + Constants.NETWORK_FEE, HttpMethod.PUT, entity, NetworkFeeResponse.class).getBody();
 
-        if (networkFeeResponse == null || networkFeeResponse.getStatus().equals("Error")) {
+        if (networkFeeResponse == null || networkFeeResponse.getStatus().equals(Constants.ERROR)) {
             throw new CotiRunTimeException("Create NetworkFee call failed!");
         }
         return networkFeeResponse;
@@ -40,7 +40,7 @@ public class NetworkFee {
 
         NetworkFeeResponse networkFeeResponse = restTemplate.postForObject(trustScoreAddress + Constants.NETWORK_FEE, networkFeeValidateRequest, NetworkFeeResponse.class);
 
-        if (networkFeeResponse == null || networkFeeResponse.getStatus().equals("Error")) {
+        if (networkFeeResponse == null || networkFeeResponse.getStatus().equals(Constants.ERROR)) {
             throw new CotiRunTimeException("Validate NetworkFee call failed!");
         }
         return networkFeeResponse;

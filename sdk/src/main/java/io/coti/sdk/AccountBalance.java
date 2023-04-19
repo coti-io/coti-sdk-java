@@ -27,7 +27,7 @@ public class AccountBalance {
         GetAccountBalanceResponse getBalancesResponse;
 
         getBalancesResponse = restTemplate.postForObject(fullNodeAddress + Constants.BALANCE, getBalance, GetAccountBalanceResponse.class);
-        if (getBalancesResponse == null || getBalancesResponse.getStatus().equals("Error")) {
+        if (getBalancesResponse == null || getBalancesResponse.getStatus().equals(Constants.ERROR)) {
             throw new BalanceException("Receiving Account balance failed!");
         }
 

@@ -9,7 +9,6 @@ import io.coti.basenode.data.*;
 import io.coti.basenode.exceptions.CotiRunTimeException;
 import io.coti.basenode.http.*;
 import io.coti.basenode.http.data.TokenGenerationFeeResponseData;
-import io.coti.sdk.utils.CryptoUtils;
 import io.coti.sdk.utils.Mapper;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
@@ -17,75 +16,29 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.Instant;
+
+import static io.coti.sdk.utils.Constants.*;
 
 @UtilityClass
-public class TokenManagement {
+public class TokenUtilities {
 
-    RestTemplate restTemplate = new RestTemplate();
-    ObjectMapper mapper = new ObjectMapper()
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-    public CurrencyTypeRegistrationData getCurrencyTypeRegistrationData(String userPrivateKey, String userHash,
-                                                                        String tokenSymbol, String rateSource, String protectionModel) {
-        CurrencyTypeData currencyTypeData = new CurrencyTypeData(CurrencyType.REGULAR_CMD_TOKEN, Instant.now());
-        currencyTypeData.setCurrencyRateSourceType(CurrencyRateSourceType.ADDRESS);
-        currencyTypeData.setRateSource(rateSource);
-        currencyTypeData.setProtectionModel(protectionModel);
-        currencyTypeData.setSignerHash(new Hash(userHash));
-        CurrencyTypeRegistrationData currencyTypeRegistrationData = new CurrencyTypeRegistrationData(tokenSymbol, currencyTypeData);
-        currencyTypeRegistrationData.setSignature(CryptoUtils.signCurrencyTypeRegistrationData(currencyTypeRegistrationData, userPrivateKey));
-        return currencyTypeRegistrationData;
-    }
-
-    public OriginatorCurrencyData getOriginatorCurrencyData(String userPrivateKey, String userHash, String tokenName,
-                                                            String tokenSymbol, String tokenDescription, BigDecimal totalSupply, int scale) {
-        OriginatorCurrencyData originatorCurrencyData = new CurrencyData();
-        originatorCurrencyData.setName(tokenName);
-        originatorCurrencyData.setSymbol(tokenSymbol);
-        originatorCurrencyData.setDescription(tokenDescription);
-        originatorCurrencyData.setTotalSupply(totalSupply);
-        originatorCurrencyData.setScale(scale);
-        originatorCurrencyData.setOriginatorHash(new Hash(userHash));
-        originatorCurrencyData.setSignature(CryptoUtils.signOriginatorCurrencyData(originatorCurrencyData, userPrivateKey));
-        return originatorCurrencyData;
-    }
-
-    public GetTokenMintingFeeQuoteRequest getTokenMintingFeeQuoteRequest(Hash userHash, Hash currencyHash, BigDecimal mintingAmount, Hash userPrivateKey) {
-        GetTokenMintingFeeQuoteRequest getTokenMintingFeeQuoteRequest = new GetTokenMintingFeeQuoteRequest();
-        getTokenMintingFeeQuoteRequest.setUserHash(userHash);
-        getTokenMintingFeeQuoteRequest.setCurrencyHash(currencyHash);
-        getTokenMintingFeeQuoteRequest.setMintingAmount(mintingAmount);
-        getTokenMintingFeeQuoteRequest.setCreateTime(Instant.now());
-        getTokenMintingFeeQuoteRequest.setSignature(CryptoUtils.signGetTokenMintingFeeQuoteRequest(getTokenMintingFeeQuoteRequest, userPrivateKey));
-        return getTokenMintingFeeQuoteRequest;
-    }
-
-    public static TokenMintingServiceData getTokenMintingServiceData(Hash currencyHash, BigDecimal mintingAmountResult,
-                                                                     BigDecimal mintingFee, Hash userHash, Hash receiverAddress, Hash userPrivateKey) {
-        TokenMintingServiceData tokenMintingServiceData = new TokenMintingServiceData();
-        tokenMintingServiceData.setMintingAmount(mintingAmountResult);
-        tokenMintingServiceData.setMintingCurrencyHash(currencyHash);
-        tokenMintingServiceData.setFeeAmount(mintingFee);
-        tokenMintingServiceData.setReceiverAddress(receiverAddress);
-        tokenMintingServiceData.setSignerHash(userHash);
-        tokenMintingServiceData.setCreateTime(Instant.now());
-        tokenMintingServiceData.setSignature(CryptoUtils.signTokenMintingServiceData(tokenMintingServiceData, userPrivateKey));
-        return tokenMintingServiceData;
-    }
-
-    public static TokenMintingFeeRequest getTokenMintingFeeRequest(TokenMintingServiceData tokenMintingServiceData, MintingFeeQuoteData mintingFeeQuoteData) {
-        TokenMintingFeeRequest tokenMintingFeeRequest = new TokenMintingFeeRequest();
-        tokenMintingFeeRequest.setTokenMintingServiceData(tokenMintingServiceData);
-        tokenMintingFeeRequest.setMintingFeeQuoteData(mintingFeeQuoteData);
-        return tokenMintingFeeRequest;
+    public GetTransactionResponse getConfirmedMultiDagEvent(String fullNodeUrl) {
+        ResponseEntity<GetTransactionResponse> response = restTemplate.getForEntity(fullNodeUrl + EVENT_MULTI_DAG_CONFIRMED, GetTransactionResponse.class);
+        if (response.getStatusCode().equals(HttpStatus.OK)) {
+            return response.getBody();
+        } else {
+            throw new CotiRunTimeException("The call to get Confirmed Multi-Dag Event failed");
+        }
     }
 
     public BaseTransactionData getTokenGenerationFeeBT(GenerateTokenFeeRequest generateTokenFeeRequest, String financialUrl) {
-        ResponseEntity<String> response = restTemplate.postForEntity(financialUrl + "/admin/token/generate", generateTokenFeeRequest, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(financialUrl + TOKEN_GENERATE, generateTokenFeeRequest, String.class);
         if (response.getStatusCode().equals(HttpStatus.CREATED)) {
             return mapResponseToTGFBT(response);
         } else {
@@ -112,7 +65,7 @@ public class TokenManagement {
 
     public GetUserTokensResponse getUserTokens(GetUserTokensRequest getUserTokensRequest, String fullNodeUrl) {
         ResponseEntity<GetUserTokensResponse> response = restTemplate.
-                postForEntity(fullNodeUrl + "/currencies/token/user", getUserTokensRequest, GetUserTokensResponse.class);
+                postForEntity(fullNodeUrl + USER_TOKENS, getUserTokensRequest, GetUserTokensResponse.class);
         if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
             return response.getBody();
         } else {
@@ -120,9 +73,49 @@ public class TokenManagement {
         }
     }
 
+    public GetTokenDetailsResponse getTokenDetails(GetTokenDetailsRequest getTokenDetailsRequest, String fullNodeUrl) {
+        ResponseEntity<GetTokenDetailsResponse> response = restTemplate.
+                postForEntity(fullNodeUrl + TOKEN_DETAILS, getTokenDetailsRequest, GetTokenDetailsResponse.class);
+        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
+            return response.getBody();
+        } else {
+            throw new CotiRunTimeException("The call to get Token details failed");
+        }
+    }
+
+    public GetTokenDetailsResponse getTokenDetailsBySymbol(GetTokenSymbolDetailsRequest tokenSymbolDetailsRequest, String fullNodeUrl) {
+        ResponseEntity<GetTokenDetailsResponse> response = restTemplate.
+                postForEntity(fullNodeUrl + TOKEN_SYMBOL_DETAILS, tokenSymbolDetailsRequest, GetTokenDetailsResponse.class);
+        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
+            return response.getBody();
+        } else {
+            throw new CotiRunTimeException("The call to get Token details by symbol failed");
+        }
+    }
+
+    public GetTokenHistoryResponse getTokenHistory(GetTokenHistoryRequest getTokenHistoryRequest, String fullNodeUrl) {
+        ResponseEntity<GetTokenHistoryResponse> response = restTemplate.
+                postForEntity(fullNodeUrl + TOKEN_HISTORY, getTokenHistoryRequest, GetTokenHistoryResponse.class);
+        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
+            return response.getBody();
+        } else {
+            throw new CotiRunTimeException("The call to get Token balances failed");
+        }
+    }
+
+    public GetTokenBalancesResponse getTokenBalances(GetTokenBalancesRequest getTokenBalancesRequest, String fullNodeUrl) {
+        ResponseEntity<GetTokenBalancesResponse> response = restTemplate.
+                postForEntity(fullNodeUrl + TOKEN_BALANCES, getTokenBalancesRequest, GetTokenBalancesResponse.class);
+        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
+            return response.getBody();
+        } else {
+            throw new CotiRunTimeException("The call to get Token balances failed");
+        }
+    }
+
     public MintingFeeQuoteData getTokenMintingFeeQuote(GetTokenMintingFeeQuoteRequest getTokenMintingFeeQuoteRequest, String financialUrl) {
         ResponseEntity<String> response = restTemplate.
-                postForEntity(financialUrl + "/admin/token/mint/quote", getTokenMintingFeeQuoteRequest, String.class);
+                postForEntity(financialUrl + TOKEN_MINT_QUOTE, getTokenMintingFeeQuoteRequest, String.class);
         if (response.getStatusCode().equals(HttpStatus.CREATED)) {
             return mapResponseToMintingFeeQuoteData(response);
         } else {
@@ -141,7 +134,7 @@ public class TokenManagement {
     }
 
     public TokenMintingFeeBaseTransactionData getTokenMintingFee(TokenMintingFeeRequest tokenMintingFeeRequest, String financialUrl) {
-        ResponseEntity<String> response = restTemplate.postForEntity(financialUrl + "/admin/token/mint/fee", tokenMintingFeeRequest, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(financialUrl + TOKEN_MINT_FEE, tokenMintingFeeRequest, String.class);
         if (response.getStatusCode().equals(HttpStatus.CREATED)) {
             return mapResponseToMFBT(response);
         } else {
