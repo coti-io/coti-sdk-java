@@ -7,9 +7,11 @@ import io.coti.basenode.exceptions.CotiRunTimeException;
 import io.coti.basenode.http.*;
 import io.coti.basenode.http.data.AddressBalanceData;
 import io.coti.basenode.http.data.TokenResponseData;
+import io.coti.sdk.data.TokenMintingServiceData;
 import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.FullNodeFeeResponse;
+import io.coti.sdk.http.TokenMintingFeeRequest;
 import io.coti.sdk.utils.CryptoUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.Test;
@@ -154,7 +156,7 @@ public class TokenMintingExampleTest {
         GetTokenBalancesResponse response = TokenUtilities.getTokenBalances(tokenBalancesRequest, fullNodeAddress);
         Map<Hash, AddressBalanceData> addressTokenBalanceDataMap = response.getTokenBalances().get(receiverAddress);
 
-        if (addressTokenBalanceDataMap == null && addressTokenBalanceDataMap.isEmpty()) {
+        if (addressTokenBalanceDataMap == null || addressTokenBalanceDataMap.isEmpty()) {
             return false;
         }
 

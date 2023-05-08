@@ -4,6 +4,7 @@ import io.coti.basenode.crypto.*;
 import io.coti.basenode.data.*;
 import io.coti.basenode.http.GetTokenMintingFeeQuoteRequest;
 import io.coti.basenode.http.GetUserTokensRequest;
+import io.coti.sdk.data.TokenMintingServiceData;
 import lombok.experimental.UtilityClass;
 
 import javax.validation.constraints.NotNull;
@@ -53,6 +54,21 @@ public class CryptoUtils {
         return baseTransactionHashBuffer.array();
     }
 
+    public byte[] getTokenMintingServiceDataBytes(TokenMintingServiceData tokenMintingServiceData) {
+        byte[] bytesOfCurrencyHash = tokenMintingServiceData.getMintingCurrencyHash().getBytes();
+        byte[] bytesOfAmount = tokenMintingServiceData.getMintingAmount().stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
+        byte[] bytesOfFeeAmount = tokenMintingServiceData.getFeeAmount() != null ? tokenMintingServiceData.getFeeAmount().stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8) : new byte[0];
+        byte[] bytesOfReceiverAddress = tokenMintingServiceData.getReceiverAddress().getBytes();
+        ByteBuffer tokenMintingDataBuffer = ByteBuffer
+                .allocate(bytesOfCurrencyHash.length + bytesOfAmount.length + bytesOfFeeAmount.length + bytesOfReceiverAddress.length + 8)
+                .put(bytesOfCurrencyHash)
+                .put(bytesOfAmount)
+                .put(bytesOfFeeAmount)
+                .put(bytesOfReceiverAddress)
+                .putLong(tokenMintingServiceData.getCreateTime().toEpochMilli());
+        return CryptoHelper.cryptoHash(tokenMintingDataBuffer.array()).getBytes();
+    }
+
     public void signBaseTransactions(TransactionData transactionData, Map<Hash, Integer> addressHashToAddressIndexMap, String seed) {
         TransactionCrypto transactionCrypto = new TransactionCrypto();
         if (transactionData.getHash() == null) {
@@ -99,8 +115,7 @@ public class CryptoUtils {
     }
 
     public SignatureData signTokenMintingServiceData(TokenMintingServiceData tokenMintingServiceData, Hash userPrivateKey) {
-        TokenMintingCrypto tokenMintingCrypto = new TokenMintingCrypto();
-        byte[] bytesToHash = tokenMintingCrypto.getSignatureMessage(tokenMintingServiceData);
+        byte[] bytesToHash = getTokenMintingServiceDataBytes(tokenMintingServiceData);
         return CryptoHelper.signBytes(bytesToHash, userPrivateKey.toHexString());
     }
 }

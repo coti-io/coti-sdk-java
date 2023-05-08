@@ -9,6 +9,7 @@ import io.coti.basenode.data.*;
 import io.coti.basenode.exceptions.CotiRunTimeException;
 import io.coti.basenode.http.*;
 import io.coti.basenode.http.data.TokenGenerationFeeResponseData;
+import io.coti.sdk.http.TokenMintingFeeRequest;
 import io.coti.sdk.utils.Mapper;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.ResponseEntity;
