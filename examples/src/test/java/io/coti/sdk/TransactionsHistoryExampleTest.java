@@ -88,7 +88,23 @@ public class TransactionsHistoryExampleTest {
         GetTokenHistoryRequest getTokenHistoryRequest = new GetTokenHistoryRequest();
         getTokenHistoryRequest.setCurrencyHash(OriginatorCurrencyCrypto.calculateHash(symbol));
 
-        GetTokenHistoryResponse response = TokenUtilities.getTokenHistory(getTokenHistoryRequest, fullNodeAddress);
+        GetTokenHistoryResponse response = null;
+        int attempts = 30;
+        while (attempts > 0) {
+            try {
+                response = TokenUtilities.getTokenHistory(getTokenHistoryRequest, fullNodeAddress);
+                break;
+            } catch (Exception e) {
+                System.out.println(e);
+                attempts--;
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+                System.out.println("sleep and wait...");
+            }
+        }
 
         System.out.println("Token History Data List has " + response.getTransactions().size() + " Transaction Data elements.");
         assertThat(response.getTransactions().size()).isNotZero();

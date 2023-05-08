@@ -14,7 +14,7 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 
-public class FullnodeStompSessionHandler extends StompSessionHandlerAdapter {
+public class FullNodeStompSessionHandler extends StompSessionHandlerAdapter {
     @SneakyThrows
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
@@ -27,7 +27,7 @@ public class FullnodeStompSessionHandler extends StompSessionHandlerAdapter {
 
     private String getReceiverAddressHash() throws ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration();
-        InputStream input = FullnodeStompClient.class.getClassLoader().getResourceAsStream("transfer.properties");
+        InputStream input = FullNodeStompClient.class.getClassLoader().getResourceAsStream("transfer.properties");
         config.load(input);
         return config.getString("receiver.address");
     }

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class NodemanagerStompClient {
+public class NodeManagerStompClient {
 
     public static void main(String[] args) throws ConfigurationException {
         String url = getWebsocketUrl();
@@ -42,7 +42,7 @@ public class NodemanagerStompClient {
 
         stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
 
-        StompSessionHandler sessionHandler = new NodemanagerStompSessionHandler();
+        StompSessionHandler sessionHandler = new NodeManagerStompSessionHandler();
         stompClient.connect(url, sessionHandler);
 
         new Scanner(System.in).nextLine(); // Don't close immediately.
@@ -51,7 +51,7 @@ public class NodemanagerStompClient {
 
     private static String getWebsocketUrl() throws ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration();
-        InputStream input = NodemanagerStompClient.class.getClassLoader().getResourceAsStream("transfer.properties");
+        InputStream input = NodeManagerStompClient.class.getClassLoader().getResourceAsStream("transfer.properties");
         config.load(input);
         String nodeManagerAddress = config.getString("node.manager.address");
         return "ws://".concat(nodeManagerAddress.split("/")[2]).concat("/websocket");

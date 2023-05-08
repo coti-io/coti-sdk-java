@@ -35,8 +35,7 @@ public class TrustScoreExampleTest {
         Hash userHash = new Hash(CryptoHelper.getPublicKeyFromPrivateKey(userPrivateKey));
         String trustScoreAddress = config.getString("trust.score.backend.address");
 
-        TrustScoreUtilities trustScoreData = new TrustScoreUtilities(trustScoreAddress);
-        GetUserTrustScoreResponse response = trustScoreData.getUserTrustScore(userHash);
+        GetUserTrustScoreResponse response = TrustScoreUtilities.getUserTrustScore(userHash, trustScoreAddress);
 
         System.out.println("User Hash: " + response.getUserHash());
         System.out.println("User type: " + response.getUserType());

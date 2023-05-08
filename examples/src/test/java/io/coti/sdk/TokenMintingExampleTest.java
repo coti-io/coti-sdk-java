@@ -7,6 +7,7 @@ import io.coti.basenode.exceptions.CotiRunTimeException;
 import io.coti.basenode.http.*;
 import io.coti.basenode.http.data.AddressBalanceData;
 import io.coti.basenode.http.data.TokenResponseData;
+import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.FullNodeFeeResponse;
 import io.coti.sdk.utils.CryptoUtils;
@@ -56,8 +57,9 @@ public class TokenMintingExampleTest {
         String fullNodeAddress = config.getString("full.node.backend.address");
         String financialUrl = config.getString("financial.node.backend.address");
         String trustScoreAddress = config.getString("trust.score.backend.address");
-        int walletAddressIndex = config.getInt("target.address.index");
-        Hash receiverAddress = CryptoHelper.generateAddress(seed, walletAddressIndex);
+        int walletAddressIndex = config.getInt("source.address.index");
+        String receiverAddressString = config.getString("receiver.address");
+        Hash receiverAddress = new Hash(receiverAddressString);
 
         //Check if user have tokens with given symbol
         GetUserTokensRequest getUserTokensRequest = new GetUserTokensRequest();
@@ -75,23 +77,30 @@ public class TokenMintingExampleTest {
         MintingFeeQuoteData mintingFeeQuoteData = TokenUtilities.getTokenMintingFeeQuote(getTokenMintingFeeQuoteRequest, financialUrl);
         BigDecimal mintingAmountResult = mintingFeeQuoteData.getMintingAmount();
         BigDecimal mintingFee = mintingFeeQuoteData.getMintingFee();
-        TokenMintingServiceData tokenMintingServiceData = TokenData.
-                getTokenMintingServiceData(currencyHash, mintingAmountResult, mintingFee, userHash, receiverAddress, userPrivateKey);
+        TokenMintingServiceData tokenMintingServiceData = TokenData.getTokenMintingServiceData(currencyHash, mintingAmountResult, mintingFee, userHash, receiverAddress, userPrivateKey);
         TokenMintingFeeRequest tokenMintingFeeRequest = TokenData.getTokenMintingFeeRequest(tokenMintingServiceData, mintingFeeQuoteData);
         TokenMintingFeeBaseTransactionData tokenMFBT = TokenUtilities.getTokenMintingFee(tokenMintingFeeRequest, financialUrl);
         BigDecimal mintFeeAmount = tokenMFBT.getAmount();
-        FullNodeFee fullNodeFee = new FullNodeFee(fullNodeAddress, nativeCurrencyHash);
-        FullNodeFeeResponse fullNodeFeeResponse = fullNodeFee.createFullNodeFee(userPrivateKey, userHash, mintFeeAmount, false);
+        FullNodeFeeResponse fullNodeFeeResponse = FullNodeFee.createFullNodeFee(userPrivateKey, userHash, mintFeeAmount, false, nativeCurrencyHash, fullNodeAddress);
         String transactionDescription = "Mint Token: " + tokenName;
-        TransactionCreation transactionCreation = new TransactionCreation(seed, userHash.toHexString(), trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
-        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.
-                createTokenTransactionByType(tokenMFBT, fullNodeFeeResponse, transactionDescription, TransactionType.TokenMinting));
+        WalletDetails transactionDetails = new WalletDetails(seed, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
+        AddTransactionRequest request = new AddTransactionRequest(TransactionUtilities.createTokenTransactionByType(tokenMFBT, fullNodeFeeResponse, transactionDescription, TransactionType.TokenMinting, transactionDetails));
         //Send Token Minting Transaction
         Hash transactionTx = TransactionUtils.sendTransaction(request, fullNodeAddress);
 
         assertThat(transactionTx).isNotNull();
         assertThat(isTokenDetailsCorrect(tokenSymbol, currencyHash, fullNodeAddress)).isTrue();
         assertThat(isTokenDetailsUpdated(currencyHash, mintingAmount, fullNodeAddress)).isTrue();
+
+        int attempts = 40;
+        while (attempts > 0) {
+            if (checkTokenBalance(receiverAddress, currencyHash, fullNodeAddress)) {
+                break;
+            } else {
+                attempts--;
+                Thread.sleep(1000);
+            }
+        }
         assertThat(checkTokenBalance(receiverAddress, currencyHash, fullNodeAddress)).isTrue();
     }
 

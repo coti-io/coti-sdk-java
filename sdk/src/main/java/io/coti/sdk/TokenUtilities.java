@@ -11,9 +11,7 @@ import io.coti.basenode.http.*;
 import io.coti.basenode.http.data.TokenGenerationFeeResponseData;
 import io.coti.sdk.utils.Mapper;
 import lombok.experimental.UtilityClass;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
@@ -22,28 +20,16 @@ import static io.coti.sdk.utils.Constants.*;
 @UtilityClass
 public class TokenUtilities {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule()).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     public GetTransactionResponse getConfirmedMultiDagEvent(String fullNodeUrl) {
-        ResponseEntity<GetTransactionResponse> response = restTemplate.getForEntity(fullNodeUrl + EVENT_MULTI_DAG_CONFIRMED, GetTransactionResponse.class);
-        if (response.getStatusCode().equals(HttpStatus.OK)) {
-            return response.getBody();
-        } else {
-            throw new CotiRunTimeException("The call to get Confirmed Multi-Dag Event failed");
-        }
+        ResponseEntity<GetTransactionResponse> response = (ResponseEntity<GetTransactionResponse>) Utilities.getRequest(fullNodeUrl + EVENT_MULTI_DAG_CONFIRMED, GetTransactionResponse.class);
+        return response.getBody();
     }
 
     public BaseTransactionData getTokenGenerationFeeBT(GenerateTokenFeeRequest generateTokenFeeRequest, String financialUrl) {
-        ResponseEntity<String> response = restTemplate.postForEntity(financialUrl + TOKEN_GENERATE, generateTokenFeeRequest, String.class);
-        if (response.getStatusCode().equals(HttpStatus.CREATED)) {
-            return mapResponseToTGFBT(response);
-        } else {
-            throw new CotiRunTimeException("The call to get Token Generation Fee Base Transaction failed");
-        }
+        ResponseEntity<String> response = (ResponseEntity<String>) Utilities.postRequest(financialUrl + TOKEN_GENERATE, generateTokenFeeRequest, String.class);
+        return mapResponseToTGFBT(response);
     }
 
     private BaseTransactionData mapResponseToTGFBT(ResponseEntity<String> response) {
@@ -64,63 +50,33 @@ public class TokenUtilities {
     }
 
     public GetUserTokensResponse getUserTokens(GetUserTokensRequest getUserTokensRequest, String fullNodeUrl) {
-        ResponseEntity<GetUserTokensResponse> response = restTemplate.
-                postForEntity(fullNodeUrl + USER_TOKENS, getUserTokensRequest, GetUserTokensResponse.class);
-        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
-            return response.getBody();
-        } else {
-            throw new CotiRunTimeException("The call to get User Tokens failed");
-        }
+        ResponseEntity<GetUserTokensResponse> response = (ResponseEntity<GetUserTokensResponse>) Utilities.postRequest(fullNodeUrl + USER_TOKENS, getUserTokensRequest, GetUserTokensResponse.class);
+        return response.getBody();
     }
 
     public GetTokenDetailsResponse getTokenDetails(GetTokenDetailsRequest getTokenDetailsRequest, String fullNodeUrl) {
-        ResponseEntity<GetTokenDetailsResponse> response = restTemplate.
-                postForEntity(fullNodeUrl + TOKEN_DETAILS, getTokenDetailsRequest, GetTokenDetailsResponse.class);
-        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
-            return response.getBody();
-        } else {
-            throw new CotiRunTimeException("The call to get Token details failed");
-        }
+        ResponseEntity<GetTokenDetailsResponse> response = (ResponseEntity<GetTokenDetailsResponse>) Utilities.postRequest(fullNodeUrl + TOKEN_DETAILS, getTokenDetailsRequest, GetTokenDetailsResponse.class);
+        return response.getBody();
     }
 
     public GetTokenDetailsResponse getTokenDetailsBySymbol(GetTokenSymbolDetailsRequest tokenSymbolDetailsRequest, String fullNodeUrl) {
-        ResponseEntity<GetTokenDetailsResponse> response = restTemplate.
-                postForEntity(fullNodeUrl + TOKEN_SYMBOL_DETAILS, tokenSymbolDetailsRequest, GetTokenDetailsResponse.class);
-        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
-            return response.getBody();
-        } else {
-            throw new CotiRunTimeException("The call to get Token details by symbol failed");
-        }
+        ResponseEntity<GetTokenDetailsResponse> response = (ResponseEntity<GetTokenDetailsResponse>) Utilities.postRequest(fullNodeUrl + TOKEN_SYMBOL_DETAILS, tokenSymbolDetailsRequest, GetTokenDetailsResponse.class);
+        return response.getBody();
     }
 
     public GetTokenHistoryResponse getTokenHistory(GetTokenHistoryRequest getTokenHistoryRequest, String fullNodeUrl) {
-        ResponseEntity<GetTokenHistoryResponse> response = restTemplate.
-                postForEntity(fullNodeUrl + TOKEN_HISTORY, getTokenHistoryRequest, GetTokenHistoryResponse.class);
-        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
-            return response.getBody();
-        } else {
-            throw new CotiRunTimeException("The call to get Token balances failed");
-        }
+        ResponseEntity<GetTokenHistoryResponse> response = (ResponseEntity<GetTokenHistoryResponse>) Utilities.postRequest(fullNodeUrl + TOKEN_HISTORY, getTokenHistoryRequest, GetTokenHistoryResponse.class);
+        return response.getBody();
     }
 
     public GetTokenBalancesResponse getTokenBalances(GetTokenBalancesRequest getTokenBalancesRequest, String fullNodeUrl) {
-        ResponseEntity<GetTokenBalancesResponse> response = restTemplate.
-                postForEntity(fullNodeUrl + TOKEN_BALANCES, getTokenBalancesRequest, GetTokenBalancesResponse.class);
-        if (response.getStatusCode().equals(HttpStatus.OK) && response.getBody() != null) {
-            return response.getBody();
-        } else {
-            throw new CotiRunTimeException("The call to get Token balances failed");
-        }
+        ResponseEntity<GetTokenBalancesResponse> response = (ResponseEntity<GetTokenBalancesResponse>) Utilities.postRequest(fullNodeUrl + TOKEN_BALANCES, getTokenBalancesRequest, GetTokenBalancesResponse.class);
+        return response.getBody();
     }
 
     public MintingFeeQuoteData getTokenMintingFeeQuote(GetTokenMintingFeeQuoteRequest getTokenMintingFeeQuoteRequest, String financialUrl) {
-        ResponseEntity<String> response = restTemplate.
-                postForEntity(financialUrl + TOKEN_MINT_QUOTE, getTokenMintingFeeQuoteRequest, String.class);
-        if (response.getStatusCode().equals(HttpStatus.CREATED)) {
-            return mapResponseToMintingFeeQuoteData(response);
-        } else {
-            throw new CotiRunTimeException("The call to get Token Minting Fee Quote failed");
-        }
+        ResponseEntity<String> response = (ResponseEntity<String>) Utilities.postRequest(financialUrl + TOKEN_MINT_QUOTE, getTokenMintingFeeQuoteRequest, String.class);
+        return mapResponseToMintingFeeQuoteData(response);
     }
 
     private MintingFeeQuoteData mapResponseToMintingFeeQuoteData(ResponseEntity<String> response) {
@@ -134,12 +90,8 @@ public class TokenUtilities {
     }
 
     public TokenMintingFeeBaseTransactionData getTokenMintingFee(TokenMintingFeeRequest tokenMintingFeeRequest, String financialUrl) {
-        ResponseEntity<String> response = restTemplate.postForEntity(financialUrl + TOKEN_MINT_FEE, tokenMintingFeeRequest, String.class);
-        if (response.getStatusCode().equals(HttpStatus.CREATED)) {
-            return mapResponseToMFBT(response);
-        } else {
-            throw new CotiRunTimeException("The call to get Token Minting Fee Quote failed");
-        }
+        ResponseEntity<String> response = (ResponseEntity<String>) Utilities.postRequest(financialUrl + TOKEN_MINT_FEE, tokenMintingFeeRequest, String.class);
+        return mapResponseToMFBT(response);
     }
 
     private static TokenMintingFeeBaseTransactionData mapResponseToMFBT(ResponseEntity<String> response) {

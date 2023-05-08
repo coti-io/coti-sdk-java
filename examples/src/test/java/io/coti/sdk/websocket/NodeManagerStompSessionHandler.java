@@ -9,7 +9,7 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 
 import java.lang.reflect.Type;
 
-public class NodemanagerStompSessionHandler extends StompSessionHandlerAdapter {
+public class NodeManagerStompSessionHandler extends StompSessionHandlerAdapter {
     @SneakyThrows
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {

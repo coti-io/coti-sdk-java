@@ -1,6 +1,5 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.CryptoHelper;
 import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
 import io.coti.basenode.data.Hash;
 import io.coti.basenode.data.NetworkData;
@@ -9,13 +8,14 @@ import io.coti.basenode.data.NodeType;
 import io.coti.basenode.http.GetTransactionRequest;
 import io.coti.basenode.http.GetTransactionResponse;
 import io.coti.basenode.http.GetTransactionsResponse;
+import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.AddTransactionRequest;
-import io.coti.sdk.utils.CryptoUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -52,8 +52,6 @@ public class TransferExampleTest {
         }
         Hash receiverAddress = new Hash(receiverAddressString);
         Hash nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash(NATIVE_CURRENCY_SYMBOL);
-        String userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed).getBytes())).toHexString();
-        String userHash = CryptoHelper.getPublicKeyFromPrivateKey(userPrivateKey);
 
         int walletAddressIndex = config.getInt("source.address.index");
         String transactionDescription = config.getString("transaction.description");
@@ -77,15 +75,15 @@ public class TransferExampleTest {
             NetworkNodeData trustNode = (NetworkNodeData) trustNodes.values().toArray()[randomlySelectedTrustNode.nextInt(trustNodes.size())];
             trustScoreAddress = trustNode.getWebServerUrl();
 
-        } else {//using URLs from properties file
+        } else { //using URLs from properties file
             trustScoreAddress = config.getString("trust.score.backend.address");
             fullNodeAddress = config.getString("full.node.backend.address");
         }
 
         boolean feeIncluded = config.getBoolean("fee.included");
         //creating Transaction
-        TransactionCreation transactionCreation = new TransactionCreation(seed, userHash, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
-        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTransferTransaction(transactionAmount, transactionDescription, receiverAddress, feeIncluded));
+        WalletDetails transactionDetails = new WalletDetails(seed, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
+        AddTransactionRequest request = new AddTransactionRequest(TransactionUtilities.createTransferTransaction(transactionAmount, transactionDescription, receiverAddress, feeIncluded, transactionDetails));
         //Sending Transaction
         Hash transactionHash = TransactionUtils.sendTransaction(request, fullNodeAddress);
 
@@ -93,9 +91,19 @@ public class TransferExampleTest {
         assertThat(transactionIsPending(transactionHash, fullNodeAddress)).isFalse();
 
         //Checking Non-indexed transaction from the Full Node
-        GetTransactionsResponse getTransactions = TransactionUtilities.getNoneIndexedTransactions(fullNodeAddress);
-        assertThat(getTransactions).isNotNull();
-        assertThat(getTransactions.getTransactionsData().toArray()).isEmpty();
+        int attempts = 3;
+        GetTransactionsResponse getTransactions = null;
+        while (attempts > 0) {
+            getTransactions = TransactionUtilities.getNoneIndexedTransactions(fullNodeAddress);
+            if (getTransactions != null && Arrays.stream(getTransactions.getTransactionsData().toArray()).findAny().isPresent()) {
+                break;
+            }
+            attempts--;
+            Thread.sleep(1000);
+        }
+        assert getTransactions != null;
+        assertThat(getTransactions.getTransactionsData().isEmpty());
+        System.out.println("Transaction Hash: ".concat(transactionHash.toHexString()));
     }
 
     //Checking Transaction status based on Transaction Data from the Full Node

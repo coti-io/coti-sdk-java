@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class FullnodeStompClient {
+public class FullNodeStompClient {
 
     public static void main(String[] args) throws ConfigurationException {
         String url = getWebsocketUrl();
@@ -42,7 +42,7 @@ public class FullnodeStompClient {
 
         stompClient.setTaskScheduler(new ConcurrentTaskScheduler());
 
-        StompSessionHandler sessionHandler = new FullnodeStompSessionHandler();
+        StompSessionHandler sessionHandler = new FullNodeStompSessionHandler();
         stompClient.connect(url, sessionHandler);
 
         new Scanner(System.in).nextLine(); // Don't close immediately.
@@ -51,7 +51,7 @@ public class FullnodeStompClient {
 
     private static String getWebsocketUrl() throws ConfigurationException {
         PropertiesConfiguration config = new PropertiesConfiguration();
-        InputStream input = FullnodeStompClient.class.getClassLoader().getResourceAsStream("transfer.properties");
+        InputStream input = FullNodeStompClient.class.getClassLoader().getResourceAsStream("transfer.properties");
         config.load(input);
         String fullNodeAddress = config.getString("full.node.backend.address");
         return "ws://".concat(fullNodeAddress.split("/")[2]).concat("/websocket");

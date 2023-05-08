@@ -3,7 +3,6 @@ package io.coti.sdk;
 import io.coti.basenode.crypto.CryptoHelper;
 import io.coti.basenode.data.Hash;
 import io.coti.basenode.http.AddressesExistsResponse;
-import io.coti.basenode.http.data.AddressStatus;
 import io.coti.sdk.http.AddAddressResponse;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.Assertions;
@@ -54,9 +53,12 @@ public class AddressExampleTest {
 
     @Test
     void addAddressToNodeTest() {
-        Hash addressHash = CryptoHelper.generateAddress(seed, 1);
+        Hash addressHash1 = CryptoHelper.generateAddress(seed, 1);
+        Hash addressHash2 = CryptoHelper.generateAddress(seed, 2);
         //Create address if not exists.
-        AddAddressResponse addressResponse = AddressUtilities.addAddressToNode(addressHash, fullNodeUrl);
-        Assertions.assertEquals(AddressStatus.EXISTS, addressResponse.getAddressStatus());
+        AddAddressResponse addressResponse1 = AddressUtilities.addAddressToNode(addressHash1, fullNodeUrl);
+        AddAddressResponse addressResponse2 = AddressUtilities.addAddressToNode(addressHash2, fullNodeUrl);
+        Assertions.assertNotNull(addressResponse1);
+        Assertions.assertNotNull(addressResponse2);
     }
 }

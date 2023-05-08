@@ -5,6 +5,7 @@ import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
 import io.coti.basenode.data.*;
 import io.coti.basenode.http.GenerateTokenFeeRequest;
 import io.coti.basenode.http.GetTransactionResponse;
+import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.FullNodeFeeResponse;
 import io.coti.sdk.utils.CryptoUtils;
@@ -69,11 +70,10 @@ class TokenGenerationExampleTest {
         //Prepare AddTransaction request for Token Generation
         BaseTransactionData tokenGenerationFeeBT = TokenUtilities.getTokenGenerationFeeBT(generateTokenFeeRequest, financialUrl);
         BigDecimal amount = tokenGenerationFeeBT.getAmount();
-        FullNodeFee fullNodeFee = new FullNodeFee(fullNodeAddress, nativeCurrencyHash);
-        FullNodeFeeResponse fullNodeFeeResponse = fullNodeFee.createFullNodeFee(new Hash(userPrivateKey), new Hash(userHash), amount, false);
+        FullNodeFeeResponse fullNodeFeeResponse = FullNodeFee.createFullNodeFee(new Hash(userPrivateKey), new Hash(userHash), amount, false, nativeCurrencyHash, fullNodeAddress);
         String transactionDescription = "Generate Token";
-        TransactionCreation transactionCreation = new TransactionCreation(seed, userHash, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
-        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTokenTransactionByType(tokenGenerationFeeBT, fullNodeFeeResponse, transactionDescription, TransactionType.TokenGeneration));
+        WalletDetails transactionDetails = new WalletDetails(seed, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
+        AddTransactionRequest request = new AddTransactionRequest(TransactionUtilities.createTokenTransactionByType(tokenGenerationFeeBT, fullNodeFeeResponse, transactionDescription, TransactionType.TokenGeneration, transactionDetails));
         //Send Generate Transaction
         Hash transactionTx = TransactionUtils.sendTransaction(request, fullNodeAddress);
 
