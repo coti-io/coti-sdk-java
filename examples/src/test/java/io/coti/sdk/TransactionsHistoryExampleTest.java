@@ -20,8 +20,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class TransactionsHistoryExampleTest {
 
@@ -88,25 +91,19 @@ public class TransactionsHistoryExampleTest {
         GetTokenHistoryRequest getTokenHistoryRequest = new GetTokenHistoryRequest();
         getTokenHistoryRequest.setCurrencyHash(OriginatorCurrencyCrypto.calculateHash(symbol));
 
-        GetTokenHistoryResponse response = null;
-        int attempts = 30;
-        while (attempts > 0) {
+        AtomicReference<GetTokenHistoryResponse> response = new AtomicReference<>();
+        await().atMost(90, TimeUnit.SECONDS).until(() -> {
             try {
-                response = TokenUtilities.getTokenHistory(getTokenHistoryRequest, fullNodeAddress);
-                break;
-            } catch (Exception e) {
-                System.out.println(e);
-                attempts--;
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
+                response.set(TokenUtilities.getTokenHistory(getTokenHistoryRequest, fullNodeAddress));
+                if (response.get() != null) {
+                    return true;
                 }
-                System.out.println("sleep and wait...");
+            } catch (Exception e) {
+                System.out.println("Exception while getting token history");
             }
-        }
-
-        System.out.println("Token History Data List has " + response.getTransactions().size() + " Transaction Data elements.");
-        assertThat(response.getTransactions().size()).isNotZero();
+            return false;
+        });
+        System.out.println("Token History Data List has " + response.get().getTransactions().size() + " Transaction Data elements.");
+        assertThat(response.get().getTransactions().size()).isNotZero();
     }
 }

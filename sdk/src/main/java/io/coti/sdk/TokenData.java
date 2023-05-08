@@ -2,9 +2,9 @@ package io.coti.sdk;
 
 import io.coti.basenode.data.*;
 import io.coti.basenode.http.GetTokenMintingFeeQuoteRequest;
+import io.coti.sdk.data.TokenMintingServiceData;
 import io.coti.sdk.http.TokenMintingFeeRequest;
 import io.coti.sdk.utils.CryptoUtils;
-import io.coti.sdk.data.TokenMintingServiceData;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;

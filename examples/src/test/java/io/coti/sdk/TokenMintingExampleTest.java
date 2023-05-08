@@ -2,7 +2,10 @@ package io.coti.sdk;
 
 import io.coti.basenode.crypto.CryptoHelper;
 import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
-import io.coti.basenode.data.*;
+import io.coti.basenode.data.Hash;
+import io.coti.basenode.data.MintingFeeQuoteData;
+import io.coti.basenode.data.TokenMintingFeeBaseTransactionData;
+import io.coti.basenode.data.TransactionType;
 import io.coti.basenode.exceptions.CotiRunTimeException;
 import io.coti.basenode.http.*;
 import io.coti.basenode.http.data.AddressBalanceData;
@@ -21,9 +24,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static io.coti.sdk.utils.Constants.NATIVE_CURRENCY_SYMBOL;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class TokenMintingExampleTest {
 
@@ -94,16 +99,7 @@ public class TokenMintingExampleTest {
         assertThat(isTokenDetailsCorrect(tokenSymbol, currencyHash, fullNodeAddress)).isTrue();
         assertThat(isTokenDetailsUpdated(currencyHash, mintingAmount, fullNodeAddress)).isTrue();
 
-        int attempts = 40;
-        while (attempts > 0) {
-            if (checkTokenBalance(receiverAddress, currencyHash, fullNodeAddress)) {
-                break;
-            } else {
-                attempts--;
-                Thread.sleep(1000);
-            }
-        }
-        assertThat(checkTokenBalance(receiverAddress, currencyHash, fullNodeAddress)).isTrue();
+        await().atMost(40, TimeUnit.SECONDS).until(() -> checkTokenBalance(receiverAddress, currencyHash, fullNodeAddress));
     }
 
     private Hash getValidCurrencyHash(GetUserTokensResponse getUserTokensResponse, String tokenName, String tokenSymbol, BigDecimal mintingAmount) {

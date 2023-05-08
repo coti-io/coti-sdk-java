@@ -18,9 +18,11 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static io.coti.sdk.utils.Constants.NATIVE_CURRENCY_SYMBOL;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class TransferExampleTest {
 
@@ -91,18 +93,13 @@ public class TransferExampleTest {
         assertThat(transactionIsPending(transactionHash, fullNodeAddress)).isFalse();
 
         //Checking Non-indexed transaction from the Full Node
-        int attempts = 3;
-        GetTransactionsResponse getTransactions = null;
-        while (attempts > 0) {
-            getTransactions = TransactionUtilities.getNoneIndexedTransactions(fullNodeAddress);
+        await().atMost(30, TimeUnit.SECONDS).until(() -> {
+            GetTransactionsResponse getTransactions = TransactionUtilities.getNoneIndexedTransactions(fullNodeAddress);
             if (getTransactions != null && Arrays.stream(getTransactions.getTransactionsData().toArray()).findAny().isPresent()) {
-                break;
+                return true;
             }
-            attempts--;
-            Thread.sleep(1000);
-        }
-        assert getTransactions != null;
-        assertThat(getTransactions.getTransactionsData().isEmpty());
+            return false;
+        });
         System.out.println("Transaction Hash: ".concat(transactionHash.toHexString()));
     }
 
