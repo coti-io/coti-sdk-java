@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,18 @@ public class CryptoUtils {
                 .put(nativeCurrencyHashInBytes).put(originalAmountInBytes);
         return CryptoHelper.signBytes(CryptoUtils.getPrivateKeyFromSeed(fullNodeFeeBuffer.array()).getBytes(), userPrivateKey.toHexString());
     }
+
+    public SignatureData signTreasuryCreateDepositData(BigDecimal leverage, BigDecimal locking, BigDecimal nextLock, Hash userPrivateKey) {
+
+        byte[] leverageBytes = leverage.stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
+        byte[] lockingBytes = locking.stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
+        byte[] nextLockBytes = nextLock.stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
+        byte[] instantBytes = ByteBuffer.allocate(8).putLong(Instant.now().toEpochMilli()).array();
+        ByteBuffer TreasuryBuffer = ByteBuffer.allocate( leverageBytes.length + lockingBytes.length + nextLockBytes.length + instantBytes.length)
+                .put(leverageBytes).put(lockingBytes).put(nextLockBytes).put(instantBytes);
+        return CryptoHelper.signBytes(CryptoUtils.getPrivateKeyFromSeed(TreasuryBuffer.array()).getBytes(), userPrivateKey.toHexString());
+    }
+
 
     public void createAndSetBaseTransactionsHash(List<BaseTransactionData> baseTransactions) {
         for (BaseTransactionData baseTransactionData : baseTransactions) {
