@@ -1,6 +1,7 @@
 package io.coti.sdk.http;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.coti.basenode.http.BaseResponse;
 import io.coti.sdk.data.TransactionTrustScoreResponseData;
 import lombok.Data;
 
@@ -11,6 +12,7 @@ public class GetTransactionTrustScoreResponse extends BaseResponse {
     private TransactionTrustScoreResponseData transactionTrustScoreData;
 
     public GetTransactionTrustScoreResponse() {
+        super();
     }
 
     public GetTransactionTrustScoreResponse(TransactionTrustScoreResponseData transactionTrustScoreData) {

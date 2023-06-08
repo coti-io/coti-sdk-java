@@ -29,7 +29,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @ContextConfiguration(classes = {BaseNodeSecretManagerService.class})
 @TestPropertySource(locations = "classpath:encrypt_decrypt.properties")
 @SpringBootTest
-public class EncryptSecretTest {
+public class EncryptSecretExampleTest {
 
     @Autowired
     private BaseNodeSecretManagerService secretManagerService;

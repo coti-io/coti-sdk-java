@@ -1,14 +1,12 @@
 package io.coti.sdk.utils;
 
 import io.coti.basenode.data.*;
+import io.coti.basenode.http.data.TokenGenerationFeeResponseData;
 import io.coti.basenode.http.data.TrustScoreNodeResultResponseData;
 import io.coti.sdk.data.FullNodeFeeResponseData;
 import io.coti.sdk.data.NetworkFeeResponseData;
 import io.coti.sdk.data.TransactionTrustScoreResponseData;
-import io.coti.sdk.data.interfaces.ToFullNodeFeeData;
-import io.coti.sdk.data.interfaces.ToNetworkFeeData;
-import io.coti.sdk.data.interfaces.ToTrustScoreData;
-import io.coti.sdk.data.interfaces.ToTrustScoreNodeResultData;
+import io.coti.sdk.data.interfaces.*;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;
@@ -29,14 +27,7 @@ public class Mapper {
 
     public ToNetworkFeeData map(NetworkFeeResponseData responseData) {
         return () -> {
-            NetworkFeeData networkFeeData = new NetworkFeeData(
-                    new Hash(responseData.getAddressHash()),
-                    responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getCurrencyHash()) : null,
-                    new BigDecimal(responseData.getAmount()),
-                    responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getOriginalCurrencyHash()) : null,
-                    new BigDecimal(responseData.getOriginalAmount()),
-                    responseData.getReducedAmount() != null ? new BigDecimal(responseData.getReducedAmount()) : null,
-                    responseData.getCreateTime());
+            NetworkFeeData networkFeeData = new NetworkFeeData(new Hash(responseData.getAddressHash()), responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getCurrencyHash()) : null, new BigDecimal(responseData.getAmount()), responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getOriginalCurrencyHash()) : null, new BigDecimal(responseData.getOriginalAmount()), responseData.getReducedAmount() != null ? new BigDecimal(responseData.getReducedAmount()) : null, responseData.getCreateTime());
             List<TrustScoreNodeResultData> networkFeeTrustScoreNodeResult = new ArrayList<>();
             for (TrustScoreNodeResultResponseData resultResponseData : responseData.getNetworkFeeTrustScoreNodeResult()) {
                 TrustScoreNodeResultData resultData = Mapper.map(resultResponseData).toTrustScoreNodeResultData();
@@ -63,5 +54,15 @@ public class Mapper {
             trustScoreData.setTrustScoreNodeSignature(responseData.getTrustScoreNodeSignature());
             return trustScoreData;
         };
+    }
+
+    public ToTokenGenerationFeeBaseTransactionData map(TokenGenerationFeeResponseData tokenGenerationFeeResponseData, TokenGenerationServiceData tokenGenerationServiceData) {
+        return () -> new TokenGenerationFeeBaseTransactionData(
+                new Hash(tokenGenerationFeeResponseData.getAddressHash()),
+                new Hash(tokenGenerationFeeResponseData.getCurrencyHash()),
+                new Hash(tokenGenerationFeeResponseData.getSignerHash()),
+                tokenGenerationFeeResponseData.getAmount(),
+                tokenGenerationFeeResponseData.getCreateTime(),
+                tokenGenerationServiceData);
     }
 }

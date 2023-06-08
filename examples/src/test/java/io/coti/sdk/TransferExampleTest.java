@@ -1,43 +1,30 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.CryptoHelper;
 import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
 import io.coti.basenode.data.Hash;
 import io.coti.basenode.data.NetworkData;
 import io.coti.basenode.data.NetworkNodeData;
 import io.coti.basenode.data.NodeType;
-import io.coti.basenode.http.CustomHttpComponentsClientHttpRequestFactory;
+import io.coti.basenode.http.GetTransactionRequest;
+import io.coti.basenode.http.GetTransactionResponse;
+import io.coti.basenode.http.GetTransactionsResponse;
+import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.AddTransactionRequest;
-import io.coti.sdk.http.AddTransactionResponse;
-import io.coti.sdk.utils.CryptoUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
+import static io.coti.sdk.utils.Constants.NATIVE_CURRENCY_SYMBOL;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class TransferExampleTest {
-    
-    public static Hash sendTransaction(AddTransactionRequest request, String fullNodeAddress) {
-        RestTemplate restTemplate = new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
-        HttpEntity<AddTransactionRequest> entity = new HttpEntity<>(request);
-        AddTransactionResponse response = restTemplate.exchange(fullNodeAddress + "/transaction", HttpMethod.PUT, entity, AddTransactionResponse.class).getBody();
-
-        if (response != null && response.getStatus().equals("Success")) {
-            System.out.println("####################################################################");
-            System.out.println("#################      " + response.getMessage());
-            System.out.println("# " + request.getHash() + " #");
-            System.out.println("####################################################################");
-            return request.getHash();
-        }
-        return null;
-    }
 
     public static void main(String[] args) throws Exception {
         TransferExampleTest transferExampleTest = new TransferExampleTest();
@@ -46,8 +33,10 @@ public class TransferExampleTest {
 
     @Test
     void transferTest() throws Exception {
+        //Loading properties from the properties file
         PropertiesConfiguration config = new PropertiesConfiguration();
-        config.load("src/test/resources/transfer.properties");
+        InputStream transferInput = TransferExampleTest.class.getClassLoader().getResourceAsStream("transfer.properties");
+        config.load(transferInput);
 
         String seed = config.getString("seed");
         if (seed == null || seed.equals("")) {
@@ -64,19 +53,16 @@ public class TransferExampleTest {
             }
         }
         Hash receiverAddress = new Hash(receiverAddressString);
-
-        Hash nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash("COTI");
-        String userPrivateKey = CryptoUtils.getPrivateKeyFromSeed((new Hash(seed).getBytes())).toHexString();
-
-        String userHash = CryptoHelper.getPublicKeyFromPrivateKey(userPrivateKey);
+        Hash nativeCurrencyHash = OriginatorCurrencyCrypto.calculateHash(NATIVE_CURRENCY_SYMBOL);
 
         int walletAddressIndex = config.getInt("source.address.index");
         String transactionDescription = config.getString("transaction.description");
-        int transactionAmount = config.getInt("transfer.amount");
+        BigDecimal transactionAmount = config.getBigDecimal("transfer.amount");
 
         String trustScoreAddress;
         String fullNodeAddress;
         String nodeManagerAddress = config.getString("node.manager.address");
+        //retrieving URLs from node manager only if the nodeManager URL exists in properties file
         if (!(nodeManagerAddress == null || nodeManagerAddress.equals(""))) {
             NetworkDetails networkDetails = new NetworkDetails();
             NetworkData networkData = networkDetails.getNodesDetails(nodeManagerAddress);
@@ -91,16 +77,44 @@ public class TransferExampleTest {
             NetworkNodeData trustNode = (NetworkNodeData) trustNodes.values().toArray()[randomlySelectedTrustNode.nextInt(trustNodes.size())];
             trustScoreAddress = trustNode.getWebServerUrl();
 
-        } else {
+        } else { //using URLs from properties file
             trustScoreAddress = config.getString("trust.score.backend.address");
             fullNodeAddress = config.getString("full.node.backend.address");
         }
 
         boolean feeIncluded = config.getBoolean("fee.included");
-        TransactionCreation transactionCreation = new TransactionCreation(seed, userHash, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
-        AddTransactionRequest request = new AddTransactionRequest(transactionCreation.createTransferTransaction(new BigDecimal(transactionAmount), transactionDescription, receiverAddress, feeIncluded));
-        Hash transactionTx = sendTransaction(request, fullNodeAddress);
+        //creating Transaction
+        WalletDetails transactionDetails = new WalletDetails(seed, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
+        AddTransactionRequest request = new AddTransactionRequest(TransactionUtilities.createTransferTransaction(transactionAmount, transactionDescription, receiverAddress, feeIncluded, transactionDetails));
+        //Sending Transaction
+        Hash transactionHash = TransactionUtils.sendTransaction(request, fullNodeAddress);
 
-        assertThat(transactionTx).isNotNull();
+        assertThat(transactionHash).isNotNull();
+        assertThat(transactionIsPending(transactionHash, fullNodeAddress)).isFalse();
+
+        //Checking Non-indexed transaction from the Full Node
+        await().atMost(30, TimeUnit.SECONDS).until(() -> {
+            GetTransactionsResponse getTransactions = TransactionUtilities.getNoneIndexedTransactions(fullNodeAddress);
+            if (getTransactions != null && Arrays.stream(getTransactions.getTransactionsData().toArray()).findAny().isPresent()) {
+                return true;
+            }
+            return false;
+        });
+        System.out.println("Transaction Hash: ".concat(transactionHash.toHexString()));
+    }
+
+    //Checking Transaction status based on Transaction Data from the Full Node
+    private boolean transactionIsPending(Hash transactionHash, String fullNodeAddress) {
+        GetTransactionRequest transactionRequest = new GetTransactionRequest();
+        transactionRequest.setTransactionHash(transactionHash);
+        GetTransactionResponse response = TransactionUtilities.getTransaction(transactionRequest, fullNodeAddress);
+        System.out.println("Transaction Details by hash " + transactionHash + " :");
+        System.out.println("Transaction Type = " + response.getTransactionData().getType() + ";");
+        System.out.println("Transaction Description = " + response.getTransactionData().getTransactionDescription() + ";");
+        System.out.println("Transaction Amount = " + response.getTransactionData().getAmount() + ";");
+        System.out.println("Transaction Index = " + response.getTransactionData().getIndex() + ";");
+        System.out.println("Transaction Trust Chain Trust Score = " + response.getTransactionData().getTrustChainTrustScore() + ";");
+
+        return response.getTransactionData().isTrustChainConsensus();
     }
 }
