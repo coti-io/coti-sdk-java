@@ -33,15 +33,35 @@ public class CryptoUtils {
         return CryptoHelper.signBytes(CryptoUtils.getPrivateKeyFromSeed(fullNodeFeeBuffer.array()).getBytes(), userPrivateKey.toHexString());
     }
 
-    public SignatureData signTreasuryCreateDepositData(BigDecimal leverage, BigDecimal locking, BigDecimal nextLock, Hash userPrivateKey) {
+    public SignatureData signTreasuryCreateDepositData(BigDecimal leverage, BigDecimal locking, BigDecimal nextLock, Hash userPrivateKey, long instantTime) {
 
-        byte[] leverageBytes = leverage.stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
-        byte[] lockingBytes = locking.stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
-        byte[] nextLockBytes = nextLock.stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
-        byte[] instantBytes = ByteBuffer.allocate(8).putLong(Instant.now().toEpochMilli()).array();
-        ByteBuffer TreasuryBuffer = ByteBuffer.allocate( leverageBytes.length + lockingBytes.length + nextLockBytes.length + instantBytes.length)
-                .put(leverageBytes).put(lockingBytes).put(nextLockBytes).put(instantBytes);
-        return CryptoHelper.signBytes(CryptoUtils.getPrivateKeyFromSeed(TreasuryBuffer.array()).getBytes(), userPrivateKey.toHexString());
+        int[] leverageBytes = numberToByteArray(leverage.intValue(), 1);
+        int[] lockingBytes = numberToByteArray(locking.intValue(), 2);
+        int[] nextLockBytes = numberToByteArray(nextLock.intValue(), 2);
+        //int[] instantBytes = numberToByteArray(instantTime * 1000, 8);
+        ByteBuffer TreasuryBuffer = ByteBuffer.allocate(leverageBytes.length + lockingBytes.length + nextLockBytes.length + Long.BYTES);
+        TreasuryBuffer.put(convertIntegersToBytes(leverageBytes)).put(convertIntegersToBytes(lockingBytes)).put(convertIntegersToBytes(nextLockBytes)).putLong(instantTime);
+        return CryptoHelper.signBytes(TreasuryBuffer.array(), userPrivateKey.toHexString());
+    }
+    private int[] numberToByteArray(long num, int byteLength) {
+        int[] bytes = new int[byteLength];
+        for (int k = 0; k < byteLength; k++) {
+            bytes[byteLength - 1 - k] = (int) (num & 255);
+            num = num / 256;
+        }
+        return bytes;
+    }
+    private byte[] convertIntegersToBytes (int[] integers) {
+        if (integers != null) {
+            byte[] outputBytes = new byte[integers.length];
+            for(int i = 0; i < integers.length; i++) {
+                int integerTemp = integers[i];
+                outputBytes[i] = (byte)(integerTemp & 0xff);
+            }
+            return outputBytes;
+        } else {
+            return null;
+        }
     }
 
 
