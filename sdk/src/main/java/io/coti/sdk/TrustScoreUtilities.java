@@ -1,10 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.CryptoHelper;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.SignatureData;
-import io.coti.basenode.http.GetTrustScoreRequest;
-import io.coti.basenode.http.GetUserTrustScoreResponse;
+import io.coti.sdk.base.*;
 import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.GetTransactionTrustScoreRequest;
 import io.coti.sdk.http.GetTransactionTrustScoreResponse;

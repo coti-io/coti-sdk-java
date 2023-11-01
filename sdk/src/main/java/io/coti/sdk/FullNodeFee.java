@@ -1,7 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.SignatureData;
+import io.coti.sdk.base.*;
 import io.coti.sdk.http.FullNodeFeeRequest;
 import io.coti.sdk.http.FullNodeFeeResponse;
 import io.coti.sdk.utils.Constants;

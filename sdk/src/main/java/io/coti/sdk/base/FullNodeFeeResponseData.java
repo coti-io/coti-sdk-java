@@ -1,15 +1,14 @@
-package io.coti.sdk.data;
+package io.coti.sdk.base;
 
-import io.coti.basenode.data.BaseTransactionName;
-import io.coti.basenode.data.FullNodeFeeData;
-import io.coti.basenode.data.SignatureData;
+
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
 import java.time.Instant;
 
+
 @Data
-public class FullNodeFeeResponseData implements Serializable {
+public class FullNodeFeeResponseData implements IResponseData {
 
     private String hash;
     private String amount;
@@ -20,9 +19,6 @@ public class FullNodeFeeResponseData implements Serializable {
     private Instant createTime;
     private String name;
     private SignatureData signatureData;
-
-    public FullNodeFeeResponseData() {
-    }
 
     public FullNodeFeeResponseData(FullNodeFeeData fullNodeFeeData) {
         this.hash = fullNodeFeeData.getHash().toString();

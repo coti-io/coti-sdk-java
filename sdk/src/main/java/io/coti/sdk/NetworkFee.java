@@ -1,8 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.data.FullNodeFeeData;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.NetworkFeeData;
+import io.coti.sdk.base.*;
 import io.coti.sdk.http.NetworkFeeRequest;
 import io.coti.sdk.http.NetworkFeeResponse;
 import io.coti.sdk.http.NetworkFeeValidateRequest;

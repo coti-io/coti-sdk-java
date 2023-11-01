@@ -1,6 +1,7 @@
 package io.coti.sdk.data.interfaces;
 
-import io.coti.basenode.data.FullNodeFeeData;
+
+import io.coti.sdk.base.FullNodeFeeData;
 
 @FunctionalInterface
 public interface ToFullNodeFeeData {

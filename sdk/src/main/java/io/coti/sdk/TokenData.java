@@ -1,8 +1,7 @@
 package io.coti.sdk;
 
-import io.coti.basenode.data.*;
-import io.coti.basenode.http.GetTokenMintingFeeQuoteRequest;
-import io.coti.sdk.data.TokenMintingServiceData;
+import io.coti.sdk.base.*;
+import io.coti.sdk.base.CurrencyTypeRegistrationData;
 import io.coti.sdk.http.TokenMintingFeeRequest;
 import io.coti.sdk.utils.CryptoUtils;
 import lombok.experimental.UtilityClass;

@@ -1,7 +1,7 @@
-package io.coti.sdk.data;
+package io.coti.sdk.base;
 
-import io.coti.basenode.data.SignatureData;
-import io.coti.basenode.data.TransactionTrustScoreData;
+import io.coti.sdk.base.SignatureData;
+import io.coti.sdk.base.TransactionTrustScoreData;
 import lombok.Data;
 
 import java.io.Serializable;

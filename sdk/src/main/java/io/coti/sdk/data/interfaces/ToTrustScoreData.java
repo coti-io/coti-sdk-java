@@ -1,6 +1,7 @@
 package io.coti.sdk.data.interfaces;
 
-import io.coti.basenode.data.TransactionTrustScoreData;
+
+import io.coti.sdk.base.TransactionTrustScoreData;
 
 @FunctionalInterface
 public interface ToTrustScoreData {

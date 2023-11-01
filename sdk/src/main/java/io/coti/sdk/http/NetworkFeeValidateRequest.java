@@ -1,9 +1,8 @@
 package io.coti.sdk.http;
 
-import io.coti.basenode.data.FullNodeFeeData;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.NetworkFeeData;
-import io.coti.basenode.http.interfaces.IRequest;
+
+import io.coti.sdk.base.*;
+import io.coti.sdk.base.NetworkFeeData;
 import lombok.Data;
 import lombok.NonNull;
 

@@ -1,6 +1,6 @@
 package io.coti.sdk.http;
 
-import io.coti.sdk.data.NetworkFeeResponseData;
+import io.coti.sdk.base.NetworkFeeResponseData;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;

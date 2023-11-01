@@ -1,7 +1,7 @@
 package io.coti.sdk.data;
 
-import io.coti.basenode.crypto.CryptoHelper;
-import io.coti.basenode.data.Hash;
+import io.coti.sdk.base.CryptoHelper;
+import io.coti.sdk.base.Hash;
 import io.coti.sdk.utils.CryptoUtils;
 import lombok.Data;
 

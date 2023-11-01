@@ -1,8 +1,7 @@
 package io.coti.sdk.http;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.coti.basenode.http.BaseResponse;
-import io.coti.sdk.data.TransactionTrustScoreResponseData;
+import io.coti.sdk.base.TransactionTrustScoreResponseData;
 import lombok.Data;
 
 @Data

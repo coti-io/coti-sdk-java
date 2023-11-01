@@ -1,7 +1,6 @@
 package io.coti.sdk.http;
 
-import io.coti.basenode.http.BaseResponse;
-import io.coti.basenode.http.data.AddressStatus;
+import io.coti.sdk.base.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

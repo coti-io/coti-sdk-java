@@ -1,10 +1,7 @@
 package io.coti.sdk.utils;
 
-import io.coti.basenode.crypto.*;
-import io.coti.basenode.data.*;
-import io.coti.basenode.http.GetTokenMintingFeeQuoteRequest;
-import io.coti.basenode.http.GetUserTokensRequest;
-import io.coti.sdk.data.TokenMintingServiceData;
+
+import io.coti.sdk.base.*;
 import lombok.experimental.UtilityClass;
 
 import javax.validation.constraints.NotNull;

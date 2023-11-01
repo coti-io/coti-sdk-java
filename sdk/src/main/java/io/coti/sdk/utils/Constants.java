@@ -1,8 +1,9 @@
 package io.coti.sdk.utils;
 
-import io.coti.basenode.http.CustomHttpComponentsClientHttpRequestFactory;
+
 import lombok.experimental.UtilityClass;
-import org.springframework.web.client.RestTemplate;
+import io.coti.sdk.base.*;
+import org.springframework.web.client.*;
 
 @UtilityClass
 public class Constants {

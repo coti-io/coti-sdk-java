@@ -1,9 +1,11 @@
 package io.coti.sdk.http;
 
-import io.coti.sdk.data.FullNodeFeeResponseData;
 import lombok.Data;
+import io.coti.sdk.base.*;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class FullNodeFeeResponse extends BaseResponse {
 
     private FullNodeFeeResponseData fullNodeFee;

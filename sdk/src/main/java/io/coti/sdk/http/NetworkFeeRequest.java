@@ -1,7 +1,6 @@
 package io.coti.sdk.http;
 
-import io.coti.basenode.data.FullNodeFeeData;
-import io.coti.basenode.data.Hash;
+import io.coti.sdk.base.*;
 import lombok.Data;
 import lombok.NonNull;
 

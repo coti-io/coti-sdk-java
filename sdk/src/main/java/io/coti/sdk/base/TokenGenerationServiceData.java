@@ -1,0 +1,39 @@
+package io.coti.sdk.base;
+
+
+import lombok.Data;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
+@Data
+public class TokenGenerationServiceData implements ITokenServiceData {
+    @NotNull
+    private @Valid OriginatorCurrencyData originatorCurrencyData;
+    @NotNull
+    private @Valid CurrencyTypeData currencyTypeData;
+    private BigDecimal feeAmount;
+
+    private TokenGenerationServiceData() {
+    }
+
+    public TokenGenerationServiceData(OriginatorCurrencyData originatorCurrencyData, CurrencyTypeData currencyTypeData, BigDecimal feeAmount) {
+        this.originatorCurrencyData = originatorCurrencyData;
+        this.currencyTypeData = currencyTypeData;
+        this.feeAmount = feeAmount;
+    }
+
+    @Override
+    public byte[] getMessageInBytes() {
+        byte[] bytesOfOriginatorCurrencyData = OriginatorCurrencyCrypto.getMessageInBytes(originatorCurrencyData);
+        CurrencyTypeRegistrationData currencyTypeRegistrationData = new CurrencyTypeRegistrationData(originatorCurrencyData.getSymbol(), currencyTypeData);
+        byte[] bytesOfCurrencyTypeData = CurrencyTypeRegistrationCrypto.getMessageInBytes(currencyTypeRegistrationData);
+        byte[] bytesOfFeeAmount = feeAmount.stripTrailingZeros().toPlainString().getBytes(StandardCharsets.UTF_8);
+
+        return ByteBuffer.allocate(bytesOfOriginatorCurrencyData.length + bytesOfCurrencyTypeData.length + bytesOfFeeAmount.length)
+                .put(bytesOfOriginatorCurrencyData).put(bytesOfCurrencyTypeData).put(bytesOfFeeAmount).array();
+    }
+}

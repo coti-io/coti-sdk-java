@@ -1,6 +1,6 @@
 package io.coti.sdk.http;
 
-import io.coti.basenode.http.BaseNodeHttpStringConstants;
+import io.coti.sdk.base.*;
 import lombok.Data;
 
 import java.io.Serializable;

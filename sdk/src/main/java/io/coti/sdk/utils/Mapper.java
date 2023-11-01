@@ -1,11 +1,6 @@
 package io.coti.sdk.utils;
 
-import io.coti.basenode.data.*;
-import io.coti.basenode.http.data.TokenGenerationFeeResponseData;
-import io.coti.basenode.http.data.TrustScoreNodeResultResponseData;
-import io.coti.sdk.data.FullNodeFeeResponseData;
-import io.coti.sdk.data.NetworkFeeResponseData;
-import io.coti.sdk.data.TransactionTrustScoreResponseData;
+import io.coti.sdk.base.*;
 import io.coti.sdk.data.interfaces.*;
 import lombok.experimental.UtilityClass;
 
@@ -19,15 +14,15 @@ public class Mapper {
     public ToFullNodeFeeData map(FullNodeFeeResponseData responseData) {
         Hash addressHash = new Hash(responseData.getAddressHash());
         Hash currencyHash = responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getCurrencyHash()) : null;
-        BigDecimal amount = new BigDecimal(responseData.getAmount());
-        BigDecimal originalAmount = new BigDecimal(responseData.getOriginalAmount());
+        BigDecimal amount = new BigDecimal(responseData.getAmount().toString());
+        BigDecimal originalAmount = new BigDecimal(responseData.getOriginalAmount().toString());
         Hash originalCurrencyHash = responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getOriginalCurrencyHash()) : null;
         return () -> new FullNodeFeeData(addressHash, currencyHash, amount, originalCurrencyHash, originalAmount, responseData.getCreateTime());
     }
 
     public ToNetworkFeeData map(NetworkFeeResponseData responseData) {
         return () -> {
-            NetworkFeeData networkFeeData = new NetworkFeeData(new Hash(responseData.getAddressHash()), responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getCurrencyHash()) : null, new BigDecimal(responseData.getAmount()), responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getOriginalCurrencyHash()) : null, new BigDecimal(responseData.getOriginalAmount()), responseData.getReducedAmount() != null ? new BigDecimal(responseData.getReducedAmount()) : null, responseData.getCreateTime());
+            NetworkFeeData networkFeeData = new NetworkFeeData(new Hash(responseData.getAddressHash()), responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getCurrencyHash()) : null, new BigDecimal(responseData.getAmount().toString()), responseData.getOriginalCurrencyHash() != null ? new Hash(responseData.getOriginalCurrencyHash()) : null, new BigDecimal(responseData.getOriginalAmount().toString()), responseData.getReducedAmount() != null ? new BigDecimal(responseData.getReducedAmount().toString()) : null, responseData.getCreateTime());
             List<TrustScoreNodeResultData> networkFeeTrustScoreNodeResult = new ArrayList<>();
             for (TrustScoreNodeResultResponseData resultResponseData : responseData.getNetworkFeeTrustScoreNodeResult()) {
                 TrustScoreNodeResultData resultData = Mapper.map(resultResponseData).toTrustScoreNodeResultData();

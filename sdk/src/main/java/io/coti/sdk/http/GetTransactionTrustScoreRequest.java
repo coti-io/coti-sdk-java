@@ -1,8 +1,6 @@
 package io.coti.sdk.http;
 
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.SignatureData;
-import io.coti.basenode.data.interfaces.ISignValidatable;
+import io.coti.sdk.base.*;
 import lombok.Data;
 import lombok.NonNull;
 

@@ -1,6 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.data.NetworkData;
+import io.coti.sdk.base.NetworkData;
 import io.coti.sdk.utils.Constants;
 import org.springframework.http.ResponseEntity;
 

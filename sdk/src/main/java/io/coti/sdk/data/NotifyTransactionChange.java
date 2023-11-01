@@ -2,10 +2,8 @@ package io.coti.sdk.data;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.coti.basenode.http.data.TransactionResponseData;
-import io.coti.basenode.http.data.TransactionStatus;
 import lombok.Data;
-
+import io.coti.sdk.base.*;
 @Data
 public class NotifyTransactionChange {
 

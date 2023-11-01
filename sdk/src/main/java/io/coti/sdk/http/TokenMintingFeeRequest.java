@@ -1,8 +1,6 @@
 package io.coti.sdk.http;
 
-import io.coti.basenode.data.MintingFeeQuoteData;
-import io.coti.basenode.http.Request;
-import io.coti.sdk.data.TokenMintingServiceData;
+import io.coti.sdk.base.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

@@ -1,9 +1,5 @@
-package io.coti.sdk.data;
+package io.coti.sdk.base;
 
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.SignatureData;
-import io.coti.basenode.data.interfaces.ISignValidatable;
-import io.coti.basenode.data.interfaces.ITokenServiceData;
 import lombok.Data;
 
 import javax.validation.Valid;

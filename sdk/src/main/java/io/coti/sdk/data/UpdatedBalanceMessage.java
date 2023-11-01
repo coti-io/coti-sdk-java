@@ -1,6 +1,6 @@
 package io.coti.sdk.data;
 
-import io.coti.basenode.data.Hash;
+import io.coti.sdk.base.*;
 import lombok.Data;
 
 import java.math.BigDecimal;

@@ -1,10 +1,7 @@
 package io.coti.sdk;
 
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.http.AddressBulkRequest;
-import io.coti.basenode.http.AddressRequest;
-import io.coti.basenode.http.AddressesExistsResponse;
-import io.coti.basenode.http.GetBalancesRequest;
+
+import io.coti.sdk.base.*;
 import io.coti.sdk.http.AddAddressResponse;
 import io.coti.sdk.http.GetAccountBalanceResponse;
 import io.coti.sdk.utils.Constants;
