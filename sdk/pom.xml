@@ -9,7 +9,7 @@
     </parent>
     <groupId>io.coti.sdk</groupId>
     <artifactId>lib</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.5-SNAPSHOT</version>
     <description>coti-sdk-java</description>
     <properties>
         <java.version>1.8</java.version>
@@ -40,16 +40,16 @@
             <artifactId>jackson-annotations</artifactId>
             <version>2.14.1</version>
         </dependency>
-                <dependency>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                    <version>4.3.12.RELEASE</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
-                    <version>2.9.1</version>
-                </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.3.26</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.9.1</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
@@ -104,6 +104,11 @@
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>6.2.5.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.ws</groupId>
+            <artifactId>jaxws-api</artifactId>
+            <version>2.3.1</version>
         </dependency>
     </dependencies>
 

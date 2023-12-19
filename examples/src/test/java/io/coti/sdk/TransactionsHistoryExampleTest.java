@@ -1,13 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.http.GetAddressTransactionBatchByTimestampRequest;
-import io.coti.basenode.http.GetAddressTransactionBatchRequest;
-import io.coti.basenode.http.GetTokenHistoryRequest;
-import io.coti.basenode.http.GetTokenHistoryResponse;
-import io.coti.basenode.http.data.TimeOrder;
-import io.coti.basenode.http.data.TransactionResponseData;
+import io.coti.sdk.base.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.BeforeAll;

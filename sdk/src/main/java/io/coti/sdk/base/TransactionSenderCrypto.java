@@ -1,12 +1,9 @@
 package io.coti.sdk.base;
 
 
-import org.springframework.stereotype.Component;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-@Component
 public class TransactionSenderCrypto extends SignatureValidationCrypto<TransactionData> {
 
     @Override

@@ -1,11 +1,8 @@
 package io.coti.sdk.base;
 
 
-import org.springframework.stereotype.Service;
-
 import java.nio.ByteBuffer;
 
-@Service
 public class GetUserTokensRequestCrypto extends SignatureValidationCrypto<GetUserTokensRequest> {
 
     @Override

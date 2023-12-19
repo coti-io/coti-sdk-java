@@ -1,14 +1,15 @@
 package io.coti.sdk.utils;
 
 
-import lombok.experimental.UtilityClass;
-import io.coti.sdk.base.*;
-import org.springframework.web.client.*;
+import io.coti.sdk.base.CustomHttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
-@UtilityClass
 public class Constants {
 
-    public static final RestTemplate restTemplate = new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
+    Constants() {
+
+    }
+    public static RestTemplate restTemplate = new RestTemplate();
     public static final String NATIVE_CURRENCY_SYMBOL = "COTI";
     public static final String BALANCE = "/balance";
     public static final String NETWORK_FEE = "/networkFee";

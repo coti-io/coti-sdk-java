@@ -1,9 +1,8 @@
 package io.coti.sdk;
 
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.http.CustomHttpComponentsClientHttpRequestFactory;
 import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.AddTransactionResponse;
+import io.coti.sdk.base.*;
 import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;

@@ -1,14 +1,10 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.CryptoHelper;
-import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
-import io.coti.basenode.data.*;
-import io.coti.basenode.http.GenerateTokenFeeRequest;
-import io.coti.basenode.http.GetTransactionResponse;
 import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.AddTransactionRequest;
 import io.coti.sdk.http.FullNodeFeeResponse;
 import io.coti.sdk.utils.CryptoUtils;
+import io.coti.sdk.base.*;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.Test;
 

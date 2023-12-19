@@ -1,12 +1,8 @@
 package io.coti.sdk.base;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 
-@Component
 public class TransactionCrypto extends SignatureCrypto<TransactionData> {
 
     private static final int BASE_TRANSACTION_HASH_SIZE = 32;

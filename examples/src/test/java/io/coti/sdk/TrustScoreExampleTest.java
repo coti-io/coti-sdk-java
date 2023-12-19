@@ -1,8 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.CryptoHelper;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.http.GetUserTrustScoreResponse;
+import io.coti.sdk.base.*;
 import io.coti.sdk.utils.CryptoUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.jupiter.api.Test;

@@ -1,15 +1,13 @@
 package io.coti.sdk;
 
-import com.google.gson.Gson;
+import io.coti.sdk.base.CotiRunTimeException;
+import io.coti.sdk.base.NetworkException;
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
-import io.coti.sdk.base.*;
-import javax.xml.ws.Response;
+
 import java.io.Serializable;
 
 import static io.coti.sdk.utils.Constants.restTemplate;
@@ -18,7 +16,7 @@ import static io.coti.sdk.utils.Constants.restTemplate;
 public class Utilities {
 
     private void responseIsOK(ResponseEntity<?> response) {
-        if (!(response != null && (response.getStatusCode().equals(HttpStatus.OK) || response.getStatusCode().equals(HttpStatus.CREATED)) && response.getBody() != null)) {
+        if (!(response != null && (response.getStatusCodeValue() == 200 || response.getStatusCodeValue() == 201) && response.getBody() != null)) {
             throw new CotiRunTimeException("response validation failed");
         }
     }
@@ -33,7 +31,8 @@ public class Utilities {
         try {
             responseEntity = restTemplate.postForEntity(urlEndpointAddress, request, responseClass);
         } catch (HttpStatusCodeException e) {
-            throw new NetworkException("error: " + new Gson().fromJson(e.getResponseBodyAsString(), Response.class));
+            throw new NetworkException("error: " + e.getResponseBodyAsString());
+            //throw new NetworkException("error: " + new Gson().fromJson(e.getResponseBodyAsString(), Response.class));
         }
         long endTime = System.currentTimeMillis();
         long duration = (endTime - startTime);
@@ -48,7 +47,8 @@ public class Utilities {
         try {
             responseEntity = restTemplate.getForEntity(urlEndpointAddress, responseClass);
         } catch (HttpStatusCodeException e) {
-            throw new NetworkException("error: " + new Gson().fromJson(e.getResponseBodyAsString(), Response.class));
+            throw new NetworkException("error: " + e.getResponseBodyAsString());
+            //throw new NetworkException("error: " + new Gson().fromJson(e.getResponseBodyAsString(), Response.class));
         }
         long endTime = System.currentTimeMillis();
         long duration = (endTime - startTime);
@@ -63,7 +63,8 @@ public class Utilities {
         try {
             responseEntity = restTemplate.exchange(urlEndpointAddress, HttpMethod.PUT, request, responseClass);
         } catch (HttpStatusCodeException e) {
-            throw new NetworkException("error: " + new Gson().fromJson(e.getResponseBodyAsString(), Response.class));
+            throw new NetworkException("error: " + e.getResponseBodyAsString());
+            //throw new NetworkException("error: " + new Gson().fromJson(e.getResponseBodyAsString(), Response.class));
         }
         long endTime = System.currentTimeMillis();
         long duration = (endTime - startTime);

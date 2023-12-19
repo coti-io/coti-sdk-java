@@ -1,13 +1,6 @@
 package io.coti.sdk;
 
-import io.coti.basenode.crypto.OriginatorCurrencyCrypto;
-import io.coti.basenode.data.Hash;
-import io.coti.basenode.data.NetworkData;
-import io.coti.basenode.data.NetworkNodeData;
-import io.coti.basenode.data.NodeType;
-import io.coti.basenode.http.GetTransactionRequest;
-import io.coti.basenode.http.GetTransactionResponse;
-import io.coti.basenode.http.GetTransactionsResponse;
+import io.coti.sdk.base.*;
 import io.coti.sdk.data.WalletDetails;
 import io.coti.sdk.http.AddTransactionRequest;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -87,6 +80,7 @@ public class TransferExampleTest {
         WalletDetails transactionDetails = new WalletDetails(seed, trustScoreAddress, fullNodeAddress, walletAddressIndex, nativeCurrencyHash);
         AddTransactionRequest request = new AddTransactionRequest(TransactionUtilities.createTransferTransaction(transactionAmount, transactionDescription, receiverAddress, feeIncluded, transactionDetails));
         //Sending Transaction
+        AddressUtilities.getAddressBalance(request.getBaseTransactions().get(0).getAddressHash(), fullNodeAddress);
         Hash transactionHash = TransactionUtils.sendTransaction(request, fullNodeAddress);
 
         assertThat(transactionHash).isNotNull();

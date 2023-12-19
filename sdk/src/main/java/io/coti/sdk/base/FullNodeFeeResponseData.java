@@ -20,6 +20,9 @@ public class FullNodeFeeResponseData implements IResponseData {
     private String name;
     private SignatureData signatureData;
 
+    public FullNodeFeeResponseData() {
+
+    }
     public FullNodeFeeResponseData(FullNodeFeeData fullNodeFeeData) {
         this.hash = fullNodeFeeData.getHash().toString();
         this.amount = fullNodeFeeData.getAmount().toPlainString();
